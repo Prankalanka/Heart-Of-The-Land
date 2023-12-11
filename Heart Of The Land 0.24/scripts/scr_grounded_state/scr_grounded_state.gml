@@ -55,7 +55,6 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 			// Go to move state if input
 			if xInputDir != 0 or entity.xVel != 0 {
 				stateMachine.changeState(entity.moveState, 1);
-				show_debug_message(entity.xVel);
 			}
 			groundedCheckReg1();
 		}
@@ -86,7 +85,7 @@ function MoveState(_id, _animName) : GroundedState(_id, _animName) constructor
 		xVel = entity.xVel;
 		
 		
-		if inRegion[2] { // This is first because of shouldChangeToIdleAnim
+		if inRegion[2] { 
 			
 			// Check change to Idle State
 			if xInputDir == 0 and xVel == 0 {
@@ -98,7 +97,7 @@ function MoveState(_id, _animName) : GroundedState(_id, _animName) constructor
 		if inRegion[1] {
 			
 			// Update xVel and X
-			entity.walkUpd(xInputDir); 
+			entity.updWalk(xInputDir); 
 			
 			// Change to idle animation via argument in updX if we're not pressing anything
 			with entity {

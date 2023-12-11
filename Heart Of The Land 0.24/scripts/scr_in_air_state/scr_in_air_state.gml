@@ -47,7 +47,6 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 		// that's when we want to max out coyote
 		if entity.yVel == 0{
 			entity.coyoteBuffer = entity.coyoteMax;
-			//show_debug_message(entity.inputHandler.currJumpFrame);
 		}
 		else {
 			entity.coyoteBuffer = 0;

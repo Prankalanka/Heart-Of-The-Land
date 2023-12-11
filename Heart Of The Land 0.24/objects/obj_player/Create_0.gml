@@ -123,11 +123,17 @@ xVelClamp = 8; // Player Data DONE
 xAccel = 2.5; // Walk State
 xDecel = 0.86; // Walk State
 
+walkFrame = 0;
+fakeMaxSpeed = 8.7
+walkVarA = 7.5
+walkVarB = 2;
+walkMulti = 1;
+
 
 // Jump State
 peak = -330;
 framesToPeak = 30
-initJumpVel = (2 * peak) / framesToPeak;
+initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
 grav = (2 * peak) / sqr(framesToPeak);
 
 coyoteBuffer = 0; // Player Data
@@ -164,6 +170,11 @@ lastDirFaced = 0;
 prioStateAnims = [];
 
 #region Old Functions
+
+// Could do movement where it takes any, value and iterates on it, but that's better for projectile so this movement should follow a graph like 
+// jumping does, how would we get lerp and other things with a pre-determined graph
+// Basically we'll accelerate the graph if we're inputting a different direction than we're going, and also really fast when we're not inputting anything
+
 function walkUpd(_xInputDir) {
     // Alter our acceleration  depending on the situation (there should be one for aerial movement) (maybe not actually)
 	
@@ -196,6 +207,7 @@ function walkUpd(_xInputDir) {
 		xAccel = 2.5;
     } 
 	else {
+		// Whenever xVel is above clamp
 		xDecel = 0.95;
 		xAccel = 0.05;
 	}
@@ -402,6 +414,47 @@ updCoyote = function() {
         coyoteBuffer--;
     }
 }
+
+
+function updWalk(_xInputDir) {
+	
+	// Fast decelerate + Lerp
+	// If we're not trying to go anywhere 
+	if _xInputDir == 0 {
+		_xInputDir = sign(walkFrame) * -1; // Make dir the opposite sign of walkFrame
+		walkMulti = 4; // Accelerate way faster
+		
+		if sign(walkFrame + _xInputDir * walkMulti) != sign(walkFrame) {
+			_xInputDir = 0;
+			walkFrame = 0;
+		}
+	}
+	// If we're inputting a different direction than we're going 
+	else if _xInputDir != sign(walkFrame + _xInputDir) {
+		walkMulti = 2.5; // Accelerate faster
+	}
+	
+	var _nextWalkFrame = walkFrame +  _xInputDir * walkMulti;
+	
+	// Limit walkFrame from 25 to -25
+	if abs(_nextWalkFrame) < 25 {
+		walkFrame = _nextWalkFrame;
+	} 
+	else {
+		walkFrame = 25 * _xInputDir;
+	}
+	
+	var _nextXVel = ((fakeMaxSpeed * power(walkFrame, walkVarB)) / (power(walkVarA, walkVarB) + power(walkFrame, walkVarB))) * sign(walkFrame);
+	
+	// Clamp xVel
+	if abs(_nextXVel) < xVelClamp {
+		xVel = _nextXVel;
+	}
+	
+	// Reset stuff
+	walkMulti = 1;
+}
+
 #endregion
 
 // The struct that changes the player's state, calling states' enter and exit functions
@@ -417,3 +470,5 @@ dashState = new DashState(id, [spr_idle_right, spr_idle_left]);
 // INITIALISE THE STATE MACHINE
 var _startingStates = [idleState, idleState, idleState];
 stateMachine.init(_startingStates);
+
+// Could make swing state, or rework movement a bit and add projectile state

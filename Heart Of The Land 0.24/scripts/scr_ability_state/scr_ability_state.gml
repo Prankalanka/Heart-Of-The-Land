@@ -46,7 +46,7 @@ function JumpState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	// Probably injected in the future for different jump heights between different jump states
 	peak = -330;
 	framesToPeak = 30
-	initJumpVel = (2 * peak) / framesToPeak;
+	initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
 	
 	static sEnter = function() {
 		abilitySEnter();
@@ -110,5 +110,9 @@ function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	    }
 		
 		with(entity){updX(dashState.dir * -1);}
+	}
+	
+	static sExit = function() {
+		entity
 	}
 }
