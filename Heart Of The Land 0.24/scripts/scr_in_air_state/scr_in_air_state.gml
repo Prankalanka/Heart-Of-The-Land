@@ -34,7 +34,7 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 				stateMachine.changeState(entity.idleState, 2);
 			}
 			else {
-				stateMachine.changeState(entity.moveState, 2);
+				stateMachine.changeState(entity.walkState, 2);
 			}
 		}
 	}

@@ -4,7 +4,7 @@ function EntityStateMachine() constructor {
 	nextStates = [[], [], []];
 	currentStates = undefined;
 	stateChangedLastFrame = false;
-	stateHierarchy = ["Idle", "Move", "InAir", "Dash", "Jump"]; // MAKE STATE NUMS BASED ON THIS 
+	stateHierarchy = ["Idle", "Move", "InAir", "Dash", "Jump", "Projectile"]; // MAKE STATE NUMS BASED ON THIS 
 	
 	static init = function(_startingStates)
 	{

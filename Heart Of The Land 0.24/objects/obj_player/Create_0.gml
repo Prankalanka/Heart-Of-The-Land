@@ -462,7 +462,7 @@ stateMachine = new EntityStateMachine();
 
 // STATES
 idleState  = new IdleState(id, [spr_idle_right, spr_idle_left]);
-moveState = new MoveState(id, [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left]);
+walkState = new WalkState(id, [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left]);
 inAirState = new InAirState(id, [spr_jump_right, spr_jump_left]);
 jumpState = new JumpState(id, [spr_jump_right, spr_jump_left]);
 dashState = new DashState(id, [spr_idle_right, spr_idle_left]);

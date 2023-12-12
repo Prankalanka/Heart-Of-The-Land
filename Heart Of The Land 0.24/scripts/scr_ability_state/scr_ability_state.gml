@@ -17,7 +17,7 @@ function AbilityState(_id, _animName) : EntityState(_id, _animName) constructor{
 				if entity.xVel == 0 and entity.inputHandler.xInputDir == 0 {
 					stateMachine.changeState(entity.idleState, 1);
 				} else {
-					stateMachine.changeState(entity.moveState, 1);
+					stateMachine.changeState(entity.walkState, 1);
 				}
 			} 
 			
@@ -29,7 +29,7 @@ function AbilityState(_id, _animName) : EntityState(_id, _animName) constructor{
 					if entity.xVel == 0 and entity.inputHandler.xInputDir == 0 {
 						stateMachine.changeState(entity.idleState, 2);
 					} else {
-						stateMachine.changeState(entity.moveState, 2);
+						stateMachine.changeState(entity.walkState, 2);
 					}
 				}
 			}
@@ -107,12 +107,25 @@ function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	        // Change to other state, this one is only active for one frame
 			isAbilityDone = true;
 			abilityUpdLogic();
+			if abs(entity.xVel) <= entity.xVelClamp {
+				entity.changeState(walkState);
+			}
 	    }
 		
 		with(entity){updX(dashState.dir * -1);}
 	}
 	
 	static sExit = function() {
-		entity
 	}
+}
+
+
+function ProjectileState(_id, _animName) : AbilityState(_id, _animName) constructor {
+	static name = "Projectile";
+	static num = 5;
+	static abilitySEnter = sEnter;
+	static abilityUpdLogic = updLogic;
+	
+	
+	
 }

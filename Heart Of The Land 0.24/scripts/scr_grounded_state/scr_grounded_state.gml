@@ -54,14 +54,14 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 		if inRegion[1] {
 			// Go to move state if input
 			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.changeState(entity.moveState, 1);
+				stateMachine.changeState(entity.walkState, 1);
 			}
 			groundedCheckReg1();
 		}
 		if inRegion[2] {
 			// Go to move state if input
 			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.changeState(entity.moveState, 2);
+				stateMachine.changeState(entity.walkState, 2);
 			}
 			groundedCheckReg2();
 		}
@@ -70,7 +70,7 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 
 
 /// Changes to IdleState if no xInput and xVel is 0
-function MoveState(_id, _animName) : GroundedState(_id, _animName) constructor
+function WalkState(_id, _animName) : GroundedState(_id, _animName) constructor
 {
 	static name = "Move";
 	static num = 1;
@@ -101,7 +101,7 @@ function MoveState(_id, _animName) : GroundedState(_id, _animName) constructor
 			
 			// Change to idle animation via argument in updX if we're not pressing anything
 			with entity {
-				if inputHandler.xInputDir == 0 and abs(xVel) < 1 and moveState.inRegion[2] { // Should add a buffer to prevent flicking to idle anim when switching directions
+				if inputHandler.xInputDir == 0 and abs(xVel) < 1 and walkState.inRegion[2] { // Should add a buffer to prevent flicking to idle anim when switching directions
 					if xVel	!= 0 {
 						updX(sign(xVel) * 2);
 					}
