@@ -13,8 +13,8 @@ if mouse_check_button(mb_left)  and attackCd
 }
 
 //DEBUGGING
-show_debug_message(string_format(xVel, 3, 20));
-show_debug_message(walkFrame);
+//show_debug_message(xVel);
+//show_debug_message(walkFrame);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);

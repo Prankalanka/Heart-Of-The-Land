@@ -98,16 +98,25 @@ inputHandler = {
 	    y = swingObj.y + lengthdir_y(swingDistance, swingAngle);
 	*/
 	
+	projectileInput : false,
+	checkProjectile : function() {
+		if keyboard_check(ord("G")) {
+			projectileInput = true;
+		}
+	},
+	
 	checkInputs : function() {
 		xInputDir = 0;
 		jumpInput = false;
 		dashInput = 0;
 		swingInput = false;
+		projectileInput = false;
 		
 		checkWalk();
 		checkJump();
 		checkDash();
 		checkSwing();
+		checkProjectile();
 	},
 	
 }
@@ -116,19 +125,14 @@ inputHandler = {
 xVel = 0;
 yVel = 0;
 
-xVelClamp = 8; // Player Data DONE
-
-// Wanna eventually have an equation that defines what speed you accelerate to 
-// and how long it takes to get to that speed
-xAccel = 2.5; // Walk State
-xDecel = 0.86; // Walk State
+xVelClamp = 8; 
 
 walkFrame = 0;
 fakeMaxSpeed = 8.7
 walkVarA = 7.5
 walkVarB = 2;
 walkMulti = 1;
-
+decel = 0.9;
 
 // Jump State
 peak = -330;
@@ -168,6 +172,8 @@ camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.3);
 
 lastDirFaced = 0;
 prioStateAnims = [];
+
+autonomous = true;
 
 #region Old Functions
 
@@ -366,43 +372,22 @@ function moveCamera() {
 #endregion
 #region New Functions
 
-/// Take the direction we want to face in and turn it into an index for our entity's anim array
-facingDirection = function (_velOrDir) {
-	switch (_velOrDir) {
-	    case 1:
-	        lastDirFaced = 0;
-			return 0;
-	        break;
-	    case -1:
-	        lastDirFaced = 1;
-			return 1;
-	        break;
-		case 0:
-			return lastDirFaced;
-			break;
-		case 2: 
-			// Last dir is 0 for compatibility with other states
-			// but we can still have multiple animations for specific states
-			lastDirFaced = 0;
-			return 2;
-			break;
-		case -2: 
-			lastDirFaced = 1;
-			return 3;
-			break;
+updYVel = function(_grav = grav) {
+	// If the change in yVel is self-inflicted
+	if _grav == grav {
+		// Fall faster when you aren't continuing a jump but you're still going upwards (variable/min jump height) 
+		if (inputHandler.currJumpFrame == 0 or inputHandler.currJumpFrame == 31) and sign(yVel) == -1{
+		    yVel -= _grav * 2;
+		}
+		// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
+		// (not starting one, cuz that's handled by the jump state) but else is more optimal
+		else if yVel < 25 {
+			//show_debug_message("aa");
+		    yVel -= _grav;
+		}
 	}
-}
-
-updYVel = function(_yInputDir) {
-	// Fall faster when you aren't continuing a jump but you're still going upwards (variable/min jump height) 
-	if (inputHandler.currJumpFrame == 0 or inputHandler.currJumpFrame == 31) and sign(yVel) == -1{
-	    yVel -= grav * 2;
-	}
-	// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
-	// (not starting one, cuz that's handled by the jump state) but else is more optimal
-	else if yVel < 25 {
-		//show_debug_message("aa");
-	    yVel -= grav;
+	else {
+		yVel -= _grav;
 	}
 }
 
@@ -422,14 +407,16 @@ function updWalk(_xInputDir) {
 	// If we're not trying to go anywhere 
 	if _xInputDir == 0 {
 		_xInputDir = sign(walkFrame) * -1; // Make dir the opposite sign of walkFrame
-		walkMulti = 4; // Accelerate way faster
+		walkMulti = 2.5; // Accelerate way faster
 		
+		// If we're exceeding the limit set walk frame to 0
 		if sign(walkFrame + _xInputDir * walkMulti) != sign(walkFrame) {
 			_xInputDir = 0;
 			walkFrame = 0;
 		}
 	}
 	// If we're inputting a different direction than we're going 
+	// Accelerate faster even over the point where we reach 0
 	else if _xInputDir != sign(walkFrame + _xInputDir) {
 		walkMulti = 2.5; // Accelerate faster
 	}
@@ -444,16 +431,26 @@ function updWalk(_xInputDir) {
 		walkFrame = 25 * _xInputDir;
 	}
 	
+	// Could make an array of 25 integer values, and only calculate decimal values
 	var _nextXVel = ((fakeMaxSpeed * power(walkFrame, walkVarB)) / (power(walkVarA, walkVarB) + power(walkFrame, walkVarB))) * sign(walkFrame);
 	
-	// Clamp xVel
-	if abs(_nextXVel) < xVelClamp {
-		xVel = _nextXVel;
-	}
+	xVel = _nextXVel;
 	
 	// Reset stuff
 	walkMulti = 1;
 }
+
+updXVel = function() {
+	// Update xVel when above the cap
+	if abs(xVel) * decel <= xVelClamp and abs(xVel) > xVelClamp {
+		walkFrame = 25 * sign(xVel) ;
+		updWalk(inputHandler.xInputDir); 
+	}
+	else {
+		xVel = xVel * decel;
+	}
+}
+
 
 #endregion
 
@@ -466,6 +463,8 @@ walkState = new WalkState(id, [spr_walk_right, spr_walk_left, spr_idle_right, sp
 inAirState = new InAirState(id, [spr_jump_right, spr_jump_left]);
 jumpState = new JumpState(id, [spr_jump_right, spr_jump_left]);
 dashState = new DashState(id, [spr_idle_right, spr_idle_left]);
+projectileState = new ProjectileState(id, [spr_jump_right, spr_jump_left]);
+
 
 // INITIALISE THE STATE MACHINE
 var _startingStates = [idleState, idleState, idleState];

@@ -8,7 +8,7 @@ function EntityState(_id, _anims) constructor {
 	updated = false;
 	
 	// Use "s" Infront of builtin variable names to prevent overrides, use s also to maintain semantics
-	static sEnter = function() 
+	static sEnter = function(_data) 
 	{
 		// Could make only specific to animations with differing collision box
 		// or just upon every collision box change

@@ -7,7 +7,7 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 	static updLogic = function() {
 		
 		// Update yVel and Y
-		entity.updYVel(sign(entity.yVel));
+		entity.updYVel();
 		with(entity){
 			// Change anim if we're ascending
 			if(sign(yVel) == -1) {
@@ -27,6 +27,10 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 		if  !entity.isAbove and entity.inputHandler.jumpInput and entity.coyoteBuffer != 0 and entity.inputHandler.spaceReleasedSinceJump{
 			stateMachine.changeState(entity.jumpState, 2);
 		}
+		if entity.inputHandler.projectileInput {
+			stateMachine.changeState(entity.projectileState, 2);
+		}
+		
 		// ONLY NEED TO LOOK OUT FOR TRANSITIONS IN ITS REGION, SO NO DASH CHECKING
 		// Change to idle or move state depending on xInput and xVel
 		if entity.isBelow {
@@ -39,7 +43,7 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 		}
 	}
 	
-	static sEnter = function() {
+	static sEnter = function(_data) {
 		// Set animation
 		stateSEnter();
 		

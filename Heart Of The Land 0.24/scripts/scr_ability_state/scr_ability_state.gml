@@ -5,7 +5,7 @@ function AbilityState(_id, _animName) : EntityState(_id, _animName) constructor{
 	
 	isAbilityDone = false;
 	
-	static sEnter = function() {
+	static sEnter = function(_data = undefined) {
 		stateSEnter();
 		isAbilityDone = false;
 	}
@@ -45,10 +45,10 @@ function JumpState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	
 	// Probably injected in the future for different jump heights between different jump states
 	peak = -330;
-	framesToPeak = 30
+	framesToPeak = 30;
 	initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
 	
-	static sEnter = function() {
+	static sEnter = function(_data = undefined) {
 		abilitySEnter();
 		
 		
@@ -64,7 +64,7 @@ function JumpState(_id, _animName) : AbilityState(_id, _animName) constructor {
 		entity.yVel = initJumpVel;
 	
 		// Update yVel and Y
-		entity.updYVel(-1);
+		entity.updYVel();
 		with(entity){updY();}
 		
 		
@@ -83,7 +83,7 @@ function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	dir = 0;
 	dashFrame = 0;
 	
-	static sEnter = function() {
+	static sEnter = function(_data = undefined) {
 		// Reset ability done
 		abilitySEnter();
 		
@@ -107,8 +107,9 @@ function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	        // Change to other state, this one is only active for one frame
 			isAbilityDone = true;
 			abilityUpdLogic();
-			if abs(entity.xVel) <= entity.xVelClamp {
-				entity.changeState(walkState);
+			
+			if abs(entity.xVel) >= entity.xVelClamp {
+				stateMachine.changeState(entity.walkState, 1);
 			}
 	    }
 		
@@ -126,6 +127,80 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	static abilitySEnter = sEnter;
 	static abilityUpdLogic = updLogic;
 	
+	// Probably injected in the future for different projectile heights between different jump states
+	thrower = undefined;
+	projectileFrame = 0;
+	angle = 0;
+	dangle = 0;
+	initVel = 50;
+	xVel = 0;
+	yVel = 0;
+	lastXPos = 0;
+	lastYPos = 0;
+	
+	static updLogic = function() {
+		updProjectileVel();
+		
+		with entity {
+			updX(sign(xVel));
+			updY();
+		}
+	}
+	
+	static sEnter = function(_data = undefined) {
+		abilitySEnter();
+		// Enter the state and set the angle and set angle and initial velocity 
+		// Set it through the player's vars
+		
+		initVel = _data[0];
+		angle = degtorad(_data[1]);
+		projectileFrame = 0;
+		lastXPos = 0;
+		lastYPos = 0;
+	}
+	
+	static updProjectileVel = function() {
+		
+		if projectileFrame < 100 {
+			
+			var _nextXPos = initVel * projectileFrame * cos(angle);
+			var _nextYPos = initVel * projectileFrame * sin(angle) - (1/2) * -entity.projGrav * sqr(projectileFrame);
+			
+			entity.xVel = _nextXPos - lastXPos;
+			entity.yVel = _nextYPos - lastYPos;
+			
+			lastXPos = _nextXPos;
+			lastYPos = _nextYPos;
+			
+			projectileFrame++
+		}
+		
+	}
+	
+	static drawPath = function() {
+		totalTime = 10;
+		var _lastXPos = entity.x;
+		var _lastYPos = entity.y;
+		
+		for (var i = 0; i < totalTime; i++) {
+			var _nextXPos = initVel * i * cos(angle) + entity.x;
+			var _nextYPos = (initVel * i * sin(angle) - (1/2) * -entity.projGrav * sqr(i)) + entity.y;
+			
+			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
+			
+			_lastXPos = _nextXPos;
+			_lastYPos = _nextYPos;
+		}
+	}
+	
+	static throwProjectile = function (_proj, _targetPos, _angle) {
+		// WE'RE USING RADIANS
+		// Find initVel
+		initVel = sqrt((sqr(_targetPos[0]) * _proj.projGrav) / (2 * _targetPos[0] * sin(_angle) * cos(_angle) - 2 * _targetPos[1] * sqr(cos(_angle))));
+		
+		time = _targetPos[0] / (initVel * cos(_angle));
+		_proj.stateMachine.changeState(_proj.projectileState, 2, [initVel, _angle]);
+	}
 	
 	
 }

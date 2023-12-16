@@ -49,10 +49,11 @@
   "isEcma": false,
   "LibraryEmitters": [],
   "MetaData": {
-    "IDEVersion": "2023.6.0.92",
+    "IDEVersion": "2023.8.2.108",
   },
   "resources": [
     {"id":{"name":"obj_player","path":"objects/obj_player/obj_player.yy",},},
+    {"id":{"name":"obj_rocc","path":"objects/obj_rocc/obj_rocc.yy",},},
     {"id":{"name":"spr_toenail","path":"sprites/spr_toenail/spr_toenail.yy",},},
     {"id":{"name":"CLOUD2","path":"sprites/CLOUD2/CLOUD2.yy",},},
     {"id":{"name":"Entities","path":"objects/Entities/Entities.yy",},},
@@ -91,6 +92,7 @@
     {"id":{"name":"obj_hit","path":"objects/obj_hit/obj_hit.yy",},},
     {"id":{"name":"spr_swing","path":"sprites/spr_swing/spr_swing.yy",},},
     {"id":{"name":"spr_bat_old","path":"sprites/spr_bat_old/spr_bat_old.yy",},},
+    {"id":{"name":"spr_rocc","path":"sprites/spr_rocc/spr_rocc.yy",},},
     {"id":{"name":"CLOUD3","path":"sprites/CLOUD3/CLOUD3.yy",},},
     {"id":{"name":"obj_bat","path":"objects/obj_bat/obj_bat.yy",},},
     {"id":{"name":"spr_platform","path":"sprites/spr_platform/spr_platform.yy",},},
@@ -105,6 +107,7 @@
     {"id":{"name":"CLOUD5","path":"sprites/CLOUD5/CLOUD5.yy",},},
     {"id":{"name":"_TOP_LAYER__LAND","path":"sprites/_TOP_LAYER__LAND/_TOP_LAYER__LAND.yy",},},
     {"id":{"name":"spr_WOLF","path":"sprites/spr_WOLF/spr_WOLF.yy",},},
+    {"id":{"name":"scr_delta_time","path":"scripts/scr_delta_time/scr_delta_time.yy",},},
     {"id":{"name":"scr_grounded_state","path":"scripts/scr_grounded_state/scr_grounded_state.yy",},},
     {"id":{"name":"Sprite25","path":"sprites/Sprite25/Sprite25.yy",},},
     {"id":{"name":"spr_idle_left","path":"sprites/spr_idle_left/spr_idle_left.yy",},},
@@ -113,6 +116,7 @@
   "RoomOrderNodes": [
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
   ],
+  "templateType": null,
   "TextureGroups": [
     {"resourceType":"GMTextureGroup","resourceVersion":"1.3","name":"Default","autocrop":true,"border":2,"compressFormat":"bz2","directory":"","groupParent":null,"isScaled":true,"loadType":"default","mipsToGenerate":0,"targets":-1,},
   ],

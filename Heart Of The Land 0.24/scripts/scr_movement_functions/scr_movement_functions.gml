@@ -37,15 +37,15 @@ function setYVel(_yVel) {
 ///@description             Updates x value by x velocity and handles collision for the update.								                                                            Not to be used for swing collisions yet.
 function updX(_velOrDir) {
 	var _xStep = sign(xVel);
+	var _initX = x;
 	// If we're going somewhere and that space is already occupied
 	// Go as far as we can 
 	if (_xStep != 0) and place_meeting(x + xVel, y, obj_platform) {
-		while !place_meeting(x + _xStep, y, obj_platform) {
-			x += _xStep;
-		}
 		xVel = 0; // If we're bumping into something we won't constantly build speed (that could be an interesting game mechanic)
 	} 
-	x += xVel;
+	while !place_meeting(x + _xStep, y, obj_platform) and  abs(x - _initX) < abs(xVel){
+		x += _xStep;
+	}
 	updPosVars();
 	// THIS IS WHERE WE CHANGE ANIMATION
 	sprite_index = prioStateAnims[facingDirection(_velOrDir)];
@@ -58,13 +58,14 @@ function updX(_velOrDir) {
 ///@description           Updates y value by y velocity and handles collision for the update.								                                                                  Not to be used for swing collisions yet
 function updY() {
 	var _yStep = sign(yVel);
+	var _initY = y;
+	
 	if (_yStep != 0 and place_meeting(x, y + yVel, obj_platform)) {
-		while (!place_meeting(x, y + _yStep, obj_platform)) {
-			y += _yStep;
-		}
 		yVel = 0;
 	}
-	y += yVel;
+	while !place_meeting(x, y + _yStep, obj_platform) and abs(y - _initY) < abs(yVel) {
+		y += _yStep;
+	}
 	updPosVars();
 }
 
@@ -120,28 +121,29 @@ function checkStuck() {
 }
 
 
-///@function                setSpeedOverTime()
-///@description           Used whenever we want to move the player without their input 
-function setDistanceOverTime(_endSpeed, _framesToPeak, _axis) {
-	//  Alternatively this could be what fully decides our x velocity, 
-	// for the y axis it's much less useful to think in terms of velocity
-	// This is good for walking and deciding lerp and dashing
-	// Hold on, actually maybe not
-	
-	setDistFrame += 1
-	var _decel = (2 * _endSpeed) / sqr(_framesToPeak);
-	
-	if setSpeedFrame == 1 {
-		var _initAccel =  (2 * _endSpeed) / _framesToPeak;
-		accel = _initAccel;
-	}
-	
-	accel -= _decel;
-	
-	if _axis == 0 {
-		xVel += accel;	
-	}
-	else if _axis == 1{
-		yVel += accel; 
+/// Take the direction we want to face in and turn it into an index for our entity's anim array
+function facingDirection(_velOrDir) {
+	switch (_velOrDir) {
+	    case 1:
+	        lastDirFaced = 0;
+			return 0;
+	        break;
+	    case -1:
+	        lastDirFaced = 1;
+			return 1;
+	        break;
+		case 0:
+			return lastDirFaced;
+			break;
+		case 2: 
+			// Last dir is 0 for compatibility with other states
+			// but we can still have multiple animations for specific states
+			lastDirFaced = 0;
+			return 2;
+			break;
+		case -2: 
+			lastDirFaced = 1;
+			return 3;
+			break;
 	}
 }
