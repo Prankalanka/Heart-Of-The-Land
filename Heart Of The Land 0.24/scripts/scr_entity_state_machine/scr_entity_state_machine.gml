@@ -1,11 +1,32 @@
+enum STATEHIERARCHY {
+	// Region 1 States (can be multi-region when grounded but clearer this way)
+	idleCombat,
+	idle,
+	walk,
+	dash,
+	
+	// Region 2 States
+	inAir,
+	jump,
+	
+	// Multi-Region States
+	projectile,
+	
+	// Region 3 States
+	hold,
+	held,
+	
+}
+
+
 /// The class of all entity state machines.
 function EntityStateMachine() constructor {
 	// 2D array of states we want to transition to that frame, an array per region
 	nextStates = [[], [], []];
 	currentStates = undefined;
 	stateChangedLastFrame = false;
-	stateHierarchy = ["Idle", "Move", "InAir", "Dash", "Jump", "Projectile"]; // MAKE STATE NUMS BASED ON THIS 
 	transitionData = [];
+	
 	
 	static init = function(_startingStates)
 	{
@@ -16,15 +37,14 @@ function EntityStateMachine() constructor {
 			currentStates[i].inRegion[i] = true;
 			currentStates[i].sEnter();
 		}
-		
 	}
 
 	static changeState = function(_newState, _region, _data = undefined)
 	{
 		stateChangedLastFrame = true;
 		
-		//show_debug_message(stateHierarchy[currentStates[_region].num]);
-		//show_debug_message(stateHierarchy[_newState.num]);
+		show_debug_message(currentStates[_region].name);
+		show_debug_message(_newState.name);
 		// Push state onto the region array of nextStates so we change state after this frame
 		array_push(nextStates[_region], _newState);
 		

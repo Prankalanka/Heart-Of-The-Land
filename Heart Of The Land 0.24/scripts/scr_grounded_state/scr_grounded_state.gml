@@ -25,14 +25,10 @@ function GroundedState(_id, _animName) : EntityState(_id, _animName) constructor
 				stateMachine.changeState(entity.dashState, 1);
 			}
 		}
-		if entity.inputHandler.projectileInput {
-			stateMachine.changeState(entity.projectileState, 1, [0.1, 300]);
-		}
 	}
 	
 	static checkReg2 =  function() {
 		entity.yVel = 0; // So InAir knows we've been grounded, also perfomance
-		
 		if entity.autonomous {
 			// Changes to InAir state if nothing is below us
 			if  !(entity.isBelow) {
@@ -42,11 +38,7 @@ function GroundedState(_id, _animName) : EntityState(_id, _animName) constructor
 				stateMachine.changeState(entity.jumpState, 2);
 			}
 		}
-		if entity.inputHandler.projectileInput {
-			stateMachine.changeState(entity.projectileState, 2, [0.1, 300]);
-		}
 	}
-	
 }
 
 
@@ -54,7 +46,7 @@ function GroundedState(_id, _animName) : EntityState(_id, _animName) constructor
 function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 {
 	static name = "Idle";
-	static num = 0;
+	static num = STATEHIERARCHY.idle;
 	static groundedUpdLogic = updLogic;
 	static groundedCheckReg1 = checkReg1;
 	static groundedCheckReg2 = checkReg2;
@@ -73,6 +65,7 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 			}
 			groundedCheckReg1();
 		}
+		
 		if inRegion[2] {
 			if entity.autonomous {
 				// Go to move state if input
@@ -83,6 +76,7 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 			groundedCheckReg2();
 		}
 	}
+	
 }
 
 
@@ -90,7 +84,7 @@ function IdleState(_id, _animName) : GroundedState(_id, _animName) constructor
 function WalkState(_id, _animName) : GroundedState(_id, _animName) constructor
 {
 	static name = "Move";
-	static num = 1;
+	static num = STATEHIERARCHY.walk;
 	static groundedUpdLogic = updLogic;
 	static groundedSEnter = sEnter;
 	static groundedCheckReg1 = checkReg1;

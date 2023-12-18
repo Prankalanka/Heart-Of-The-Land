@@ -1,7 +1,7 @@
 
 function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 	static name = "InAir";
-	static num = 2;
+	static num = STATEHIERARCHY.inAir;
 	static stateSEnter = sEnter;
 	
 	static updLogic = function() {
@@ -27,13 +27,13 @@ function InAirState(_id, _animName) : EntityState(_id, _animName) constructor {
 		if  !entity.isAbove and entity.inputHandler.jumpInput and entity.coyoteBuffer != 0 and entity.inputHandler.spaceReleasedSinceJump{
 			stateMachine.changeState(entity.jumpState, 2);
 		}
-		if entity.inputHandler.projectileInput {
-			stateMachine.changeState(entity.projectileState, 2);
-		}
 		
+		
+		//show_debug_message("aaa");
 		// ONLY NEED TO LOOK OUT FOR TRANSITIONS IN ITS REGION, SO NO DASH CHECKING
 		// Change to idle or move state depending on xInput and xVel
 		if entity.isBelow {
+			//show_debug_message("hh");
 			if entity.inputHandler.xInputDir == 0 and entity.xVel == 0 {
 				stateMachine.changeState(entity.idleState, 2);
 			}

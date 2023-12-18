@@ -39,19 +39,17 @@ function AbilityState(_id, _animName) : EntityState(_id, _animName) constructor{
 
 function JumpState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	static name = "Jump";
-	static num = 4;
+	static num = STATEHIERARCHY.jump;
 	static abilitySEnter = sEnter;
 	static abilityUpdLogic = updLogic;
 	
 	// Probably injected in the future for different jump heights between different jump states
-	peak = -330;
-	framesToPeak = 30;
-	initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
+	peak = entity.peak;
+	framesToPeak = entity.framesToPeak;
+	initJumpVel = entity.initJumpVel;
 	
 	static sEnter = function(_data = undefined) {
 		abilitySEnter();
-		
-		
 		
 		// Set input values (these handle if we're continuing a jump or not)
 		entity.inputHandler.spaceReleasedSinceJump = false;
@@ -77,7 +75,7 @@ function JumpState(_id, _animName) : AbilityState(_id, _animName) constructor {
 
 function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	static name = "Dash";
-	static num = 3;
+	static num = STATEHIERARCHY.dash;
 	static abilitySEnter = sEnter;
 	static abilityUpdLogic = updLogic;
 	dir = 0;
@@ -123,16 +121,15 @@ function DashState(_id, _animName) : AbilityState(_id, _animName) constructor {
 
 function ProjectileState(_id, _animName) : AbilityState(_id, _animName) constructor {
 	static name = "Projectile";
-	static num = 5;
+	static num = STATEHIERARCHY.projectile;
 	static abilitySEnter = sEnter;
 	static abilityUpdLogic = updLogic;
 	
 	// Probably injected in the future for different projectile heights between different jump states
-	thrower = undefined;
 	projectileFrame = 0;
 	angle = 0;
 	dangle = 0;
-	initVel = 50;
+	initVel = 5;
 	xVel = 0;
 	yVel = 0;
 	lastXPos = 0;
@@ -153,7 +150,7 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 		// Set it through the player's vars
 		
 		initVel = _data[0];
-		angle = degtorad(_data[1]);
+		angle = _data[1];
 		projectileFrame = 0;
 		lastXPos = 0;
 		lastYPos = 0;
@@ -161,24 +158,32 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	
 	static updProjectileVel = function() {
 		
-		if projectileFrame < 100 {
+		// For 100 frames
+		if projectileFrame < 100  and (entity.xVel != 0 and entity.yVel != 0) {
 			
+			// Find the next position we're going to
 			var _nextXPos = initVel * projectileFrame * cos(angle);
 			var _nextYPos = initVel * projectileFrame * sin(angle) - (1/2) * -entity.projGrav * sqr(projectileFrame);
 			
+			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
 			entity.yVel = _nextYPos - lastYPos;
 			
+			// Make the next position the last position, storing to be used at the start of the next frame
 			lastXPos = _nextXPos;
 			lastYPos = _nextYPos;
 			
 			projectileFrame++
 		}
+		else {
+			entity.xVel = entity.xVel * entity.decel;
+			entity.yVel = entity.yVel * entity.decel;
+		}
 		
 	}
 	
 	static drawPath = function() {
-		totalTime = 10;
+		totalTime = 100;
 		var _lastXPos = entity.x;
 		var _lastYPos = entity.y;
 		
@@ -191,16 +196,20 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			_lastXPos = _nextXPos;
 			_lastYPos = _nextYPos;
 		}
+	}	
+}
+
+function HeldState(_id, _animName) : AbilityState(_id, _animName) constructor {
+	static name = "Held";
+	static num = STATEHIERARCHY.held;
+	holder = undefined;
+	
+	static sEnter = function(_data) {
+		holder = _data;
 	}
 	
-	static throwProjectile = function (_proj, _targetPos, _angle) {
-		// WE'RE USING RADIANS
-		// Find initVel
-		initVel = sqrt((sqr(_targetPos[0]) * _proj.projGrav) / (2 * _targetPos[0] * sin(_angle) * cos(_angle) - 2 * _targetPos[1] * sqr(cos(_angle))));
-		
-		time = _targetPos[0] / (initVel * cos(_angle));
-		_proj.stateMachine.changeState(_proj.projectileState, 2, [initVel, _angle]);
+	static updLogic = function() {
+		entity.x = holder.x;
+		entity.y = holder.y
 	}
-	
-	
 }

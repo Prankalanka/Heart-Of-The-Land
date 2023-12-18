@@ -14,7 +14,7 @@ if mouse_check_button(mb_left)  and attackCd
 
 //DEBUGGING
 //show_debug_message(xVel);
-//show_debug_message(walkFrame);
+//show_debug_message([stateMachine.currentStates[0].name, stateMachine.currentStates[1].name, stateMachine.currentStates[2].name]);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);

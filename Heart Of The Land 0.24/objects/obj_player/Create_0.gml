@@ -1,7 +1,3 @@
-state = EntityStates.base;
-
-event_inherited();
-
 inputHandler = {
 	xInputDir : 0,
 	checkWalk : function() {
@@ -14,7 +10,7 @@ inputHandler = {
 	jumpInput : false, // For now only one variable, but might seperate into multiple vars for more control
 	framesToPeak : 30,
 	spaceReleasedSinceJump : true,
-	jumpBufferMax : 9,
+	jumpBufferMax : 14,
 	jumpBuffer : 0,
 	currJumpFrame : 0,
 	checkJump : function() {
@@ -98,25 +94,38 @@ inputHandler = {
 	    y = swingObj.y + lengthdir_y(swingDistance, swingAngle);
 	*/
 	
-	projectileInput : false,
-	checkProjectile : function() {
-		if keyboard_check(ord("G")) {
-			projectileInput = true;
+	holdInput : false,
+	throwPos : [0,0],
+	holdInputHeld : false,
+	holdCancel : false,
+	checkThrow : function() {
+		// Set hold input and held to true at first frame
+		if mouse_check_button_pressed(mb_right) {
+			holdInput = true;
+			holdInputHeld = true;
 		}
+		
+		// Keep held true and update throwPos  if we're holding
+		holdInputHeld = mouse_check_button(mb_right);
+		if holdInputHeld {throwPos = [mouse_x, mouse_y];}
+		
+		// Check if we're trying to cancel (make this put it into our inventory if it can)
+		holdCancel = mouse_check_button_pressed(mb_left);
 	},
 	
+
 	checkInputs : function() {
 		xInputDir = 0;
 		jumpInput = false;
 		dashInput = 0;
 		swingInput = false;
-		projectileInput = false;
+		holdInput = false;
 		
 		checkWalk();
 		checkJump();
 		checkDash();
 		checkSwing();
-		checkProjectile();
+		checkThrow();
 	},
 	
 }
@@ -135,8 +144,8 @@ walkMulti = 1;
 decel = 0.9;
 
 // Jump State
-peak = -330;
-framesToPeak = 30
+peak = -280;
+framesToPeak = 24;
 initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
 grav = (2 * peak) / sqr(framesToPeak);
 
@@ -247,7 +256,6 @@ function swingCheck() {
     if (keyboard_check(vk_up) or keyboard_check(ord("W"))) and place_meeting(x, y, obj_swing) {
         // If we are below the swing
         if y > obj_swing.y {
-            stateTransition(EntityStates.swing);
             // Define the swing we collided with as our swing and find the angle between it and the player
             swing = obj_swing;
             swingAngle = point_direction(swing.x, swing.y, x, y);
@@ -310,7 +318,7 @@ function swingUpd() {
 
         yVel = magnitude * 2 * sign(yVel);
         xVel = magnitude * 4 * sign(xVel);
-        stateTransition(EntityStates.base);
+        //stateTransition(EntityStates.base);
     }
 }
 
@@ -358,8 +366,8 @@ function moveCamera() {
     targetY = y - camera_get_view_height(view_camera[0]) / 1.25;
 	
 	// Lerp between mouse and player
-    targetX = lerp(targetX, mouse_x, 0.2);
-    targetY = lerp(targetY, mouse_y, 0.2);
+   targetX = lerp(targetX, mouse_x, 0.2);
+   // targetY = lerp(targetY, mouse_y, 0.2);
 
     camX = lerp(camera_get_view_x(view_camera[0]), targetX, 0.075);
     camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.15);
@@ -381,9 +389,13 @@ updYVel = function(_grav = grav) {
 		}
 		// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
 		// (not starting one, cuz that's handled by the jump state) but else is more optimal
-		else if yVel < 25 {
-			//show_debug_message("aa");
-		    yVel -= _grav;
+		else if yVel < 28 {
+			if sign(yVel) == -1 {
+				yVel -= _grav;
+			}
+			else {
+				yVel -= _grav * 1.3;
+			}
 		}
 	}
 	else {
@@ -464,10 +476,11 @@ inAirState = new InAirState(id, [spr_jump_right, spr_jump_left]);
 jumpState = new JumpState(id, [spr_jump_right, spr_jump_left]);
 dashState = new DashState(id, [spr_idle_right, spr_idle_left]);
 projectileState = new ProjectileState(id, [spr_jump_right, spr_jump_left]);
-
+idleCombatState = new IdleCombatState(id, [spr_idle_right, spr_idle_left]);
+holdState = new HoldState(id, [spr_idle_right, spr_idle_left, spr_idle_right, spr_idle_left]); // hold animations whilst walking
 
 // INITIALISE THE STATE MACHINE
-var _startingStates = [idleState, idleState, idleState];
+var _startingStates = [idleCombatState, idleState, idleState];
 stateMachine.init(_startingStates);
 
 // Could make swing state, or rework movement a bit and add projectile state

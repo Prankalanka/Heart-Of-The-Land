@@ -60,11 +60,12 @@ function updY() {
 	var _yStep = sign(yVel);
 	var _initY = y;
 	
-	if (_yStep != 0 and place_meeting(x, y + yVel, obj_platform)) {
-		yVel = 0;
-	}
 	while !place_meeting(x, y + _yStep, obj_platform) and abs(y - _initY) < abs(yVel) {
 		y += _yStep;
+	}
+	
+	if (_yStep != 0 and place_meeting(x, y + yVel, obj_platform)) {
+		yVel = 0;
 	}
 	updPosVars();
 }

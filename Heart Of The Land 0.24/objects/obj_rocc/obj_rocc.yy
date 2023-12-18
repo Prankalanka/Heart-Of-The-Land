@@ -13,7 +13,10 @@
     "name": "Entities",
     "path": "folders/Objects/Entities.yy",
   },
-  "parentObjectId": null,
+  "parentObjectId": {
+    "name": "par_throwable",
+    "path": "objects/par_throwable/par_throwable.yy",
+  },
   "persistent": false,
   "physicsAngularDamping": 0.1,
   "physicsDensity": 0.5,
