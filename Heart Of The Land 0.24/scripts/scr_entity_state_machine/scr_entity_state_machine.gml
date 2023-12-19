@@ -43,8 +43,8 @@ function EntityStateMachine() constructor {
 	{
 		stateChangedLastFrame = true;
 		
-		show_debug_message(currentStates[_region].name);
-		show_debug_message(_newState.name);
+		//show_debug_message(currentStates[_region].name);
+		//show_debug_message(_newState.name);
 		// Push state onto the region array of nextStates so we change state after this frame
 		array_push(nextStates[_region], _newState);
 		

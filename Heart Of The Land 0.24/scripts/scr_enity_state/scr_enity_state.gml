@@ -3,7 +3,7 @@ function EntityState(_id, _anims) constructor {
 	// Things that aren't going to change from instance to instance are made static
 	entity = _id; // Reference to the player object
 	anims = _anims; // Animation specific to that state
-	stateMachine = entity.stateMachine; // Reference to the actual state machine
+	stateMachine = entity.stateMachine; // Reference to the actual state machinestatic
 	inRegion = [false, false, false]
 	updated = false;
 	

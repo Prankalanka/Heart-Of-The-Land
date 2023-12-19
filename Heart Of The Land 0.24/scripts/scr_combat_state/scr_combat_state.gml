@@ -50,8 +50,8 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	static updLogic = function() {
 		var _targetPos = entity.inputHandler.throwPos;
-		height = _targetPos[1] + sqrt(sqr(_targetPos[0]) + sqr(_targetPos[1]));
-		
+		height = _targetPos[1];
+
 		
 		doChecks();
 	}
@@ -86,28 +86,73 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _grav = _proj.projGrav;
 		var _tX = _targetPos[0];
 		var _tY = _targetPos[1];
-		show_debug_message(_targetPos);
+		//show_debug_message(_targetPos);
 		
 		var _a = (-0.5 * _grav);
-		var _b = sqrt(2 * _grav * _height);
+		var _b = sqrt(2 * _grav * height);
 		var _c = -_tY;
 		
-		var _posTime = quadraticEquation(_a, _b, _c, 1);
-		var _negTime = quadraticEquation(_a, _b, _c, -1);
+		//show_debug_message([height, _b]);
+		
+		var _posTime = quadraticEquation(_a, -_b, _c, 1);
+		var _negTime = quadraticEquation(_a, -_b, _c, -1);
 		var _time = max(_posTime, _negTime);
 		
-		var _angle = arctan(_b * _time / _tX);
+		//var _angle =  degtorad(point_direction(_lastXPos, _lastYPos, _tX, _tY));
+		var _angle = arctan(_time * -_b / _tX);
 		
-		var _initVel = _b / sign(_angle);
+		var _initVel = (-_b) / sin(_angle);
 		
 		var _data =  [_initVel, _angle];
 		
-		_proj.stateMachine.changeState(entity.projectileState, 0, _data);
-		_proj.stateMachine.changeState(entity.projectileState, 1, _data);
-		_proj.stateMachine.changeState(entity.projectileState, 2, _data);
+		show_debug_message(_data);
+		
+		_proj.stateMachine.changeState(_proj.projectileState, 0, _data);
+		_proj.stateMachine.changeState(_proj.projectileState, 1, _data);
+		_proj.stateMachine.changeState(_proj.projectileState, 2, _data);
 	}
 	
 	static quadraticEquation = function(_a, _b, _c,  _sign) {
 		return (-_b + _sign * sqrt(sqr(_b) - 4 * _a * _c)) / (2 * _a);
 	}
+	
+	static drawPath = function() {
+		totalTime = 100;
+		var _lastXPos = held.x;
+		var _lastYPos = held.y;
+		
+		// WE'RE USING RADIANS		
+		var _grav = held.projGrav;
+		var _tX = mouse_x;
+		var _tY = mouse_y;
+		//show_debug_message(_targetPos);
+		
+		var _a = (-0.5 * _grav);
+		var _height = max(height - _lastYPos, 1)
+		var _b = sqrt(2 * _grav * _height);
+		var _c = - (_tY - _lastYPos);
+		
+		//show_debug_message([height, _b]);
+		
+		var _posTime = quadraticEquation(_a, _b, _c, 1);
+		var _negTime = quadraticEquation(_a, _b, _c, -1);
+		var _time = max(_posTime, _negTime);
+		
+		//var _angle =  degtorad(point_direction(_lastXPos, _lastYPos, _tX, _tY));
+		var _angle = arctan((_time * _b) / (_tX - _lastXPos));
+		
+		var _initVel = (_b) / sin(_angle);
+		
+		show_debug_message([_b, point_direction(_lastXPos, _lastYPos, _tX, _tY)]);
+		
+		for (var i = 0; i < totalTime; i++) {
+			var _nextXPos = _initVel * i * cos(_angle) + held.x;
+			var _nextYPos = (-_initVel * i * sin(_angle) - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			
+			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
+			
+			_lastXPos = _nextXPos;
+			_lastYPos = _nextYPos;
+		}
+	}	
 }

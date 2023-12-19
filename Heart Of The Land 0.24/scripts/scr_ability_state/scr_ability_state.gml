@@ -159,11 +159,11 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	static updProjectileVel = function() {
 		
 		// For 100 frames
-		if projectileFrame < 100  and (entity.xVel != 0 and entity.yVel != 0) {
+		if projectileFrame < 100 {
 			
 			// Find the next position we're going to
 			var _nextXPos = initVel * projectileFrame * cos(angle);
-			var _nextYPos = initVel * projectileFrame * sin(angle) - (1/2) * -entity.projGrav * sqr(projectileFrame);
+			var _nextYPos = initVel * projectileFrame * sin(angle) - (1/2) * (-1 * entity.projGrav) * sqr(projectileFrame);
 			
 			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
@@ -179,11 +179,10 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			entity.xVel = entity.xVel * entity.decel;
 			entity.yVel = entity.yVel * entity.decel;
 		}
-		
 	}
 	
 	static drawPath = function() {
-		totalTime = 100;
+		totalTime = 10;
 		var _lastXPos = entity.x;
 		var _lastYPos = entity.y;
 		
@@ -196,7 +195,7 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			_lastXPos = _nextXPos;
 			_lastYPos = _nextYPos;
 		}
-	}	
+	}
 }
 
 function HeldState(_id, _animName) : AbilityState(_id, _animName) constructor {
