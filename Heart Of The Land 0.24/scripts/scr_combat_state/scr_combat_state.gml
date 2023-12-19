@@ -39,6 +39,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	held = undefined;
 	height = 0;
+	multi = 0.05;
 	
 	static sEnter = function(_data) {
 		held = _data;
@@ -50,9 +51,9 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	static updLogic = function() {
 		var _targetPos = entity.inputHandler.throwPos;
-		height = _targetPos[1];
-
-		
+		var _sqrX = sqr(held.x - _targetPos[0]);
+		var _sqrY = sqr(held.y - _targetPos[1]);
+		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
 		doChecks();
 	}
 	
@@ -81,7 +82,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		}
 	}
 	
-	static throwProjectile = function (_proj, _targetPos, _height) {
+	static throwProjectile = function (_proj, _targetPos) {
 		// WE'RE USING RADIANS		
 		var _grav = _proj.projGrav;
 		var _tX = _targetPos[0];
@@ -89,21 +90,19 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		//show_debug_message(_targetPos);
 		
 		var _a = (-0.5 * _grav);
-		var _b = sqrt(2 * _grav * height);
-		var _c = -_tY;
+		var _height = max(height, 0.01);
+		var _b = sqrt(2 * _grav * _height);
+		var _c = - (held.y - _tY);
 		
-		//show_debug_message([height, _b]);
-		
-		var _posTime = quadraticEquation(_a, -_b, _c, 1);
-		var _negTime = quadraticEquation(_a, -_b, _c, -1);
+		var _posTime = quadraticEquation(_a, _b, _c, 1);
+		var _negTime = quadraticEquation(_a, _b, _c, -1);
 		var _time = max(_posTime, _negTime);
 		
-		//var _angle =  degtorad(point_direction(_lastXPos, _lastYPos, _tX, _tY));
-		var _angle = arctan(_time * -_b / _tX);
+		var _angle = arctan((_time * _b) / (held.x - _tX));
 		
-		var _initVel = (-_b) / sin(_angle);
+		var _initVel = _b / sin(_angle);
 		
-		var _data =  [_initVel, _angle];
+		var _data =  [_initVel, _angle, multi];
 		
 		show_debug_message(_data);
 		
@@ -128,9 +127,11 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		//show_debug_message(_targetPos);
 		
 		var _a = (-0.5 * _grav);
-		var _height = max(height - _lastYPos, 1)
+		var _height = max(height, 0.01);
 		var _b = sqrt(2 * _grav * _height);
-		var _c = - (_tY - _lastYPos);
+		var _c = - (_lastYPos - _tY);
+		
+		// having lastYPos affect height makes us change heigh whilst jumpihng
 		
 		//show_debug_message([height, _b]);
 		
@@ -139,14 +140,14 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _time = max(_posTime, _negTime);
 		
 		//var _angle =  degtorad(point_direction(_lastXPos, _lastYPos, _tX, _tY));
-		var _angle = arctan((_time * _b) / (_tX - _lastXPos));
+		var _angle = arctan((_time * _b) / (_lastXPos - _tX));
 		
-		var _initVel = (_b) / sin(_angle);
+		var _initVel = _b / sin(_angle);
 		
 		show_debug_message([_b, point_direction(_lastXPos, _lastYPos, _tX, _tY)]);
 		
-		for (var i = 0; i < totalTime; i++) {
-			var _nextXPos = _initVel * i * cos(_angle) + held.x;
+		for (var i = 0; i < totalTime; i += 1 * multi) {
+			var _nextXPos = -_initVel * i * cos(_angle) + held.x; 
 			var _nextYPos = (-_initVel * i * sin(_angle) - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);

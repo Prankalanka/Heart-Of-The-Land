@@ -3,7 +3,9 @@
 
 draw_self();
 
-projectileState.drawPath();
+if stateMachine.currentStates[1] == projectileState {
+	projectileState.drawPath();
+}
 
 
 

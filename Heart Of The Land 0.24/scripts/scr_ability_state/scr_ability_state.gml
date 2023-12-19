@@ -134,6 +134,8 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	yVel = 0;
 	lastXPos = 0;
 	lastYPos = 0;
+	initPos = [];
+	multi = 1;
 	
 	static updLogic = function() {
 		updProjectileVel();
@@ -151,6 +153,9 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 		
 		initVel = _data[0];
 		angle = _data[1];
+		multi = _data[2];
+		
+		initPos = [entity.x, entity.y];
 		projectileFrame = 0;
 		lastXPos = 0;
 		lastYPos = 0;
@@ -162,8 +167,8 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 		if projectileFrame < 100 {
 			
 			// Find the next position we're going to
-			var _nextXPos = initVel * projectileFrame * cos(angle);
-			var _nextYPos = initVel * projectileFrame * sin(angle) - (1/2) * (-1 * entity.projGrav) * sqr(projectileFrame);
+			var _nextXPos = -initVel * projectileFrame * cos(angle);
+			var _nextYPos = (-initVel * projectileFrame *  sin(angle) - (1/2) *  -entity.projGrav * sqr(projectileFrame));
 			
 			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
@@ -173,7 +178,7 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			lastXPos = _nextXPos;
 			lastYPos = _nextYPos;
 			
-			projectileFrame++
+			projectileFrame += 1 * multi;
 		}
 		else {
 			entity.xVel = entity.xVel * entity.decel;
@@ -182,13 +187,13 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	}
 	
 	static drawPath = function() {
-		totalTime = 10;
+		totalTime = 100;
 		var _lastXPos = entity.x;
 		var _lastYPos = entity.y;
 		
-		for (var i = 0; i < totalTime; i++) {
-			var _nextXPos = initVel * i * cos(angle) + entity.x;
-			var _nextYPos = (initVel * i * sin(angle) - (1/2) * -entity.projGrav * sqr(i)) + entity.y;
+		for (var i = 0; i < totalTime; i += 1 * multi) {
+			var _nextXPos = -initVel * i * cos(angle) + initPos[0];
+			var _nextYPos = (-initVel * i * sin(angle) - (1/2) * -entity.projGrav * sqr(i)) + initPos[1];
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
