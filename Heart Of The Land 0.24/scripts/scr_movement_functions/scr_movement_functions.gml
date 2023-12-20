@@ -38,18 +38,28 @@ function setYVel(_yVel) {
 function updX(_velOrDir) {
 	var _xStep = sign(xVel);
 	var _initX = x;
-	// If we're going somewhere and that space is already occupied
-	// Go as far as we can 
+	var _decimals = xVel -  (_xStep * floor(abs(xVel)));
+	var _tempXVel = xVel;
+	
+	// If we collide, we reset the yVel to 0 to prevent us from still building speed
+	// We also set _decimals to 0, so we're the next pixel over from what we're colliding with (no subpixels)
 	if (_xStep != 0) and place_meeting(x + xVel, y, obj_platform) {
-		xVel = 0; // If we're bumping into something we won't constantly build speed (that could be an interesting game mechanic)
+		_tempXVel = 0; // If we're bumping into something we won't constantly build speed (that could be an interesting game mechanic)
+		_decimals = 0;
 	} 
-	while !place_meeting(x + _xStep, y, obj_platform) and  abs(x - _initX) < abs(xVel){
+	
+	// Increment x by integer (pixel) values until we detect an object at the next pixel
+	while abs(xVel) >= 1 and !place_meeting(x + _xStep, y, obj_platform) and abs(x - _initX) < abs(xVel - 1 * _xStep) {
 		x += _xStep;
 	}
+	show_debug_message([x, _initX, xVel, _decimals]);
+	
+	x += _decimals; // If we don't do this we can't use sub-pixel movements which throws off our calculations a lot
+	xVel = _tempXVel;
+
 	updPosVars();
 	// THIS IS WHERE WE CHANGE ANIMATION
 	sprite_index = prioStateAnims[facingDirection(_velOrDir)];
-	//show_debug_message(facingDirection(_velOrDir));
 	checkStuck();
 }
 	
@@ -59,14 +69,21 @@ function updX(_velOrDir) {
 function updY() {
 	var _yStep = sign(yVel);
 	var _initY = y;
+	var _decimals = yVel - (_yStep * floor(abs(yVel)));
+	var _tempYVel = yVel;
 	
-	while !place_meeting(x, y + _yStep, obj_platform) and abs(y - _initY) < abs(yVel) {
+	if (_yStep != 0 and place_meeting(x, y + yVel, obj_platform)) {
+		_tempYVel = 0;
+		_decimals = 0;
+	}
+	
+	while abs(yVel) >= 1 and !place_meeting(x, y + _yStep, obj_platform) and abs(y - _initY) < abs(yVel - 1 * _yStep){
 		y += _yStep;
 	}
 	
-	if (_yStep != 0 and place_meeting(x, y + yVel, obj_platform)) {
-		yVel = 0;
-	}
+	y += _decimals;
+	yVel = _tempYVel;
+	
 	updPosVars();
 }
 

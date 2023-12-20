@@ -39,7 +39,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	held = undefined;
 	height = 0;
-	multi = 0.05;
+	multi = 0.1;
 	
 	static sEnter = function(_data) {
 		held = _data;
@@ -54,6 +54,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _sqrX = sqr(held.x - _targetPos[0]);
 		var _sqrY = sqr(held.y - _targetPos[1]);
 		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
+		
 		doChecks();
 	}
 	
@@ -66,7 +67,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		if !entity.inputHandler.holdInputHeld {
 			var _targetPos = entity.inputHandler.throwPos;
 			
-			throwProjectile(held, _targetPos, height);
+			throwProjectile(held, _targetPos);
 			stateMachine.changeState(entity.idleCombatState, 0);
 		}
 	}
@@ -104,7 +105,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		
 		var _data =  [_initVel, _angle, multi];
 		
-		show_debug_message(_data);
+		//show_debug_message(_data);
 		
 		_proj.stateMachine.changeState(_proj.projectileState, 0, _data);
 		_proj.stateMachine.changeState(_proj.projectileState, 1, _data);
@@ -143,8 +144,6 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _angle = arctan((_time * _b) / (_lastXPos - _tX));
 		
 		var _initVel = _b / sin(_angle);
-		
-		show_debug_message([_b, point_direction(_lastXPos, _lastYPos, _tX, _tY)]);
 		
 		for (var i = 0; i < totalTime; i += 1 * multi) {
 			var _nextXPos = -_initVel * i * cos(_angle) + held.x; 
