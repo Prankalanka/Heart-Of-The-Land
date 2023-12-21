@@ -52,7 +52,6 @@ function updX(_velOrDir) {
 	while abs(xVel) >= 1 and !place_meeting(x + _xStep, y, obj_platform) and abs(x - _initX) < abs(xVel - 1 * _xStep) {
 		x += _xStep;
 	}
-	show_debug_message([x, _initX, xVel, _decimals]);
 	
 	x += _decimals; // If we don't do this we can't use sub-pixel movements which throws off our calculations a lot
 	xVel = _tempXVel;

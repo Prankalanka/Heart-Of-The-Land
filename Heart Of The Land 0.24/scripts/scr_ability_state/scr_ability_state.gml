@@ -172,7 +172,6 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
 			entity.yVel = _nextYPos - lastYPos;
-			show_debug_message([entity.xVel, entity.yVel]);
 			
 			// Make the next position the last position, storing to be used at the start of the next frame
 			lastXPos = _nextXPos;
