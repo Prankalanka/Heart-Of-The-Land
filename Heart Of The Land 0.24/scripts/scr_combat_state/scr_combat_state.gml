@@ -43,6 +43,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	multi = 0.1;
 	angle = 0;
 	initVel = 0;
+	areAxesOpposite = 1;
 	
 	initMPos = [];
 	
@@ -56,7 +57,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	}
 	
 	static updLogic = function() {
-		if entity == plyr { // Player always wants to aim projectile cuz we wanna draw it
+		if entity == plyr { // Player always wants to aim projectile cuz we wanna draw it or 
 			aimProjectilePos(); 
 		}
 		
@@ -90,6 +91,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	}
 	
 	static aimProjectilePos = function () {
+		areAxesOpposite = 1;
 		// WE'RE USING RADIANS		
 		var _targetPos = entity.inputHandler.throwPos;
 		var _sqrX = sqr(held.x - _targetPos[0]);
@@ -124,9 +126,10 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _lastXPos = held.x;
 		var _lastYPos = held.y;
 		
+		//show_debug_message([initVel, angle]);
 		for (var i = 0; i < totalTime; i += 1 * multi) {
-			var _nextXPos = -initVel * i * cos(angle) * sign(initVel) + held.x; 
-			var _nextYPos = ((-initVel * i * sin(angle) * sign(initVel) * -1) - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			var _nextXPos = -initVel * i * cos(angle) * areAxesOpposite + held.x; 
+			var _nextYPos = (-initVel * i * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
@@ -136,10 +139,11 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	}
 	
 	static aimProjectilePlyr = function() {
+		areAxesOpposite = -1;
 		// WE'RE USING RADIANS		
 		var _grav = held.projGrav;
-		var _xDiff = initMPos[0] - mouse_x;
-		var _yDiff = initMPos[1] - mouse_y;
+		var _xDiff = mouse_x - initMPos[0];
+		var _yDiff = mouse_y - initMPos[1];
 		
 		// Get angle from initial mouse pos to current mouse position
 		angle = degtorad(point_direction(initMPos[0], initMPos[1], mouse_x, mouse_y));
@@ -149,16 +153,16 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		// We make it an absolute value because we don't care about sign, we'll set it later
 		height = abs(sin(angle) * _yDiff);
 	
-		var _b = sqrt(2 * _grav * height); // A variable from the projectile motion equation 
+		var _b = sqrt(2 * _grav * height) * sign(_yDiff); // A variable from the projectile motion equation 
 		var _magnitude = sqrt(sqr(_xDiff) + sqr(_yDiff)); // If you don't know what magnitude is idk what to tell you
-		
+
 		// Not sure why the maths works, I just know that we can rearrange the equation to get this
 		initVel = (_b / sin(angle)) * _magnitude/ 150; // I know sin gives us direction, and magnitude gives us power
-		show_debug_message([radtodeg(angle), _b, sin(angle), initVel]);
+		show_debug_message([radtodeg(angle),  initVel, height, _b, sin(angle)]);
 	}
 	
 	static throwProjectile = function() {
-		var _data =  [initVel, angle, multi];
+		var _data =  [initVel, angle, multi, areAxesOpposite];
 		
 		held.stateMachine.changeState(held.projectileState, 0, _data);
 		held.stateMachine.changeState(held.projectileState, 1, _data);
