@@ -44,6 +44,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	angle = 0;
 	initVel = 0;
 	areAxesOpposite = 1;
+	weight = 1/3;
 	
 	initMPos = [];
 	
@@ -58,7 +59,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	static updLogic = function() {
 		if entity == plyr { // Player always wants to aim projectile cuz we wanna draw it or 
-			aimProjectilePlyr(); 
+			aimProjectilePos(); 
 		}
 		
 		doChecks();
@@ -128,8 +129,20 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		
 		//show_debug_message([initVel, angle]);
 		for (var i = 0; i < totalTime; i += 1 * multi) {
-			var _nextXPos = -initVel * i * cos(angle) * areAxesOpposite + held.x; 
+			var _nextXPos = -initVel * i  *cos(angle) * areAxesOpposite + held.x; 
 			var _nextYPos = (-initVel * i * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			
+			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
+			
+			_lastXPos = _nextXPos;
+			_lastYPos = _nextYPos;
+		}
+		
+		_lastXPos = held.x;
+		_lastYPos = held.y;
+		for (var i = 0; i < totalTime; i += 1 * multi) {
+			var _nextXPos = -initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
+			var _nextYPos = (-initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			

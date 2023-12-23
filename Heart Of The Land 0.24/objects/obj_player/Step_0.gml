@@ -12,9 +12,14 @@ if mouse_check_button(mb_left)  and attackCd
 	attackExec();
 }
 
+if keyboard_check_pressed(ord("Z")) {
+	holdState.weight += 0.05;
+	
+}
+
 //DEBUGGING
 //show_debug_message(xVel);
-//stateMachine.showNames();
+stateMachine.showNames();
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);
