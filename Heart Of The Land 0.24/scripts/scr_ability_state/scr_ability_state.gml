@@ -169,8 +169,8 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 		if projectileFrame < 100 {
 			
 			// Find the next position we're going to
-			var _nextXPos = -initVel * projectileFrame * cos(angle) * areAxesOpposite;
-			var _nextYPos = (-initVel * projectileFrame *  sin(angle) - (1/2) *  -entity.projGrav * sqr(projectileFrame));
+			var _nextXPos = initVel * projectileFrame * cos(angle) * areAxesOpposite;
+			var _nextYPos = (initVel * projectileFrame *  sin(angle) - (1/2) *  -entity.projGrav * sqr(projectileFrame));
 			
 			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
@@ -194,8 +194,8 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 		var _lastYPos = entity.y;
 		
 		for (var i = 0; i < totalTime; i += 1 * multi) {
-			var _nextXPos = -initVel * i * cos(angle) * areAxesOpposite + initPos[0];
-			var _nextYPos = (-initVel * i * sin(angle) - (1/2) * -entity.projGrav * sqr(i)) + initPos[1];
+			var _nextXPos = initVel * i * cos(angle) * areAxesOpposite + initPos[0];
+			var _nextYPos = (initVel * i * sin(angle) - (1/2) * -entity.projGrav * sqr(i)) + initPos[1];
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			

@@ -56,61 +56,61 @@ function EntityStateMachine() constructor {
 	
 	 static updLogic = function(){
 		 
-		 	if stateChangedLastFrame {
-				for (var i = 0; i < array_length(nextStates); i++) {
-					// If the region's array of states we want to change to is not empty
-					if array_length(nextStates[i]) != 0 {
+		if stateChangedLastFrame {
+			for (var i = 0; i < array_length(nextStates); i++) {
+				// If the region's array of states we want to change to is not empty
+				if array_length(nextStates[i]) != 0 {
 					
-						// Sort by hierarchy
-						var _priorityState = undefined;
-						for (var j = 0; j < array_length(nextStates[i]); j++) {
-							if _priorityState != undefined and nextStates[i][j].num > _priorityState.num {
-								_priorityState = nextStates[i][j];
-							} else if _priorityState == undefined {
-								_priorityState =  nextStates[i][j];
-							}
+					// Sort by hierarchy
+					var _priorityState = undefined;
+					for (var j = 0; j < array_length(nextStates[i]); j++) {
+						if _priorityState != undefined and nextStates[i][j].num > _priorityState.num {
+							_priorityState = nextStates[i][j];
+						} else if _priorityState == undefined {
+							_priorityState =  nextStates[i][j];
 						}
-					
-						// If current state isn't a duplistate do the exit function for that state
-						if !isDuplistate(currentStates[i]) {
-							currentStates[i].sExit();	
-						}
-				
-						// Set current and next state inRegion values
-						currentStates[i].inRegion[i] = false;
-						currentStates[i] = _priorityState;
-						currentStates[i].inRegion[i] = true;
-					
-						// If new state isn't a duplistate do the enter function for that state
-						if !isDuplistate(currentStates[i]) {
-							if array_length(transitionData) != 0 and transitionData[_priorityState.num] != undefined {
-								currentStates[i].sEnter(transitionData[_priorityState.num]);
-							}
-							else {
-								currentStates[i].sEnter();
-							}
-						}
-					
-						// Figure out which state in the hierarchy we should have the animation of
-						_priorityState = undefined;
-						for (var j = 0; j < array_length(currentStates); j++) {
-							if _priorityState != undefined and currentStates[j].num > _priorityState.num {
-								_priorityState = currentStates[j];
-							} else if _priorityState == undefined {
-								_priorityState =  currentStates[j];
-							}
-						}
-					
-						// Change animation
-						_priorityState.entity.prioStateAnims = _priorityState.anims;
-						_priorityState.entity.sprite_index =  _priorityState.anims[_priorityState.entity.lastDirFaced];
-						with _priorityState.entity {checkStuck();}
-						//show_debug_message(_priorityState.name);
 					}
+					
+					// If current state isn't a duplistate do the exit function for that state
+					if !isDuplistate(currentStates[i]) {
+						currentStates[i].sExit();	
+					}
+				
+					// Set current and next state inRegion values
+					currentStates[i].inRegion[i] = false;
+					currentStates[i] = _priorityState;
+					currentStates[i].inRegion[i] = true;
+					
+					// If new state isn't a duplistate do the enter function for that state
+					if !isDuplistate(currentStates[i]) {
+						if array_length(transitionData) != 0 and transitionData[_priorityState.num] != undefined {
+							currentStates[i].sEnter(transitionData[_priorityState.num]);
+						}
+						else {
+							currentStates[i].sEnter();
+						}
+					}
+					
+					// Figure out which state in the hierarchy we should have the animation of
+					_priorityState = undefined;
+					for (var j = 0; j < array_length(currentStates); j++) {
+						if _priorityState != undefined and currentStates[j].num > _priorityState.num {
+							_priorityState = currentStates[j];
+						} else if _priorityState == undefined {
+							_priorityState =  currentStates[j];
+						}
+					}
+					
+					// Change animation
+					_priorityState.entity.prioStateAnims = _priorityState.anims;
+					_priorityState.entity.sprite_index =  _priorityState.anims[_priorityState.entity.lastDirFaced];
+					with _priorityState.entity {checkStuck();}
+					//show_debug_message(_priorityState.name);
 				}
-				stateChangedLastFrame = false;
-				transitionData = [];
 			}
+			stateChangedLastFrame = false;
+			transitionData = [];
+		}
 		 
 		 // Reset Next States
 		 nextStates = [[],[],[]];

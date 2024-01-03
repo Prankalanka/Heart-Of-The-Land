@@ -91,33 +91,6 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		}
 	}
 	
-	static aimProjectilePos = function () {
-		areAxesOpposite = 1;
-		// WE'RE USING RADIANS		
-		var _targetPos = entity.inputHandler.throwPos;
-		var _sqrX = sqr(held.x - _targetPos[0]);
-		var _sqrY = sqr(held.y - _targetPos[1]);
-		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
-		
-		var _grav = held.projGrav;
-		var _tX = _targetPos[0];
-		var _tY = _targetPos[1];
-		//show_debug_message(_targetPos);
-		
-		var _a = (-0.5 * _grav);
-		var _height = max(height, 0.01);
-		var _b = sqrt(2 * _grav * _height);
-		var _c = - (held.y - _tY);
-		
-		var _posTime = quadraticEquation(_a, _b, _c, 1);
-		var _negTime = quadraticEquation(_a, _b, _c, -1);
-		var _time = max(_posTime, _negTime);
-		
-		angle = arctan((_time * _b) / (held.x - _tX));
-		
-		initVel = _b / sin(angle);
-	}
-	
 	static quadraticEquation = function(_a, _b, _c,  _sign) {
 		return (-_b + _sign * sqrt(sqr(_b) - 4 * _a * _c)) / (2 * _a);
 	}
@@ -129,8 +102,8 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		
 		//show_debug_message([initVel, angle]);
 		for (var i = 0; i < totalTime; i += 1 * multi) {
-			var _nextXPos = -initVel * i  *cos(angle) * areAxesOpposite + held.x; 
-			var _nextYPos = (-initVel * i * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			var _nextXPos = initVel * i  *cos(angle) * areAxesOpposite + held.x; 
+			var _nextYPos = (initVel * i * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
@@ -140,9 +113,17 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		
 		_lastXPos = held.x;
 		_lastYPos = held.y;
+		
+		// We have a speed 
+		// We accelerate along the y axes by adding half of our acceleration multiplied the square of time
 		for (var i = 0; i < totalTime; i += 1 * multi) {
-			var _nextXPos = -initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
-			var _nextYPos = (-initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			var yPos = held.y;
+			var _velocity = initVel * i * sin(angle);
+			var _nextAccel = 1/2 * -held.projGrav * sqr(i);
+			var _nextVelocity = _lastVelocity + _nextAccel;
+			yPos += _nextVelocity;
+			var _nextXPos = initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
+			var _nextYPos = (initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
@@ -170,8 +151,35 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _magnitude = sqrt(sqr(_xDiff) + sqr(_yDiff)); // If you don't know what magnitude is idk what to tell you
 
 		// Not sure why the maths works, I just know that we can rearrange the equation to get this
-		initVel = (_b / sin(angle)) * _magnitude/ 150; // I know sin gives us direction, and magnitude gives us power
+		initVel = -1 * ((_b / sin(angle)) * _magnitude/ 150); // I know sin gives us direction, and magnitude gives us power
 		show_debug_message([radtodeg(angle),  initVel, height, _b, sin(angle)]);
+	}
+	
+	static aimProjectilePos = function () {
+		areAxesOpposite = 1;
+		// WE'RE USING RADIANS		
+		var _targetPos = entity.inputHandler.throwPos;
+		var _sqrX = sqr(held.x - _targetPos[0]);
+		var _sqrY = sqr(held.y - _targetPos[1]);
+		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
+		
+		var _grav = held.projGrav;
+		var _tX = _targetPos[0];
+		var _tY = _targetPos[1];
+		//show_debug_message(_targetPos);
+		
+		var _a = (-0.5 * _grav);
+		var _height = max(height, 0.01);
+		var _b = sqrt(2 * _grav * _height);
+		var _c = - (held.y - _tY);
+		
+		var _posTime = quadraticEquation(_a, _b, _c, 1);
+		var _negTime = quadraticEquation(_a, _b, _c, -1);
+		var _time = max(_posTime, _negTime);
+		
+		angle = arctan((_time * _b) / (held.x - _tX));
+		
+		initVel = -1 * (_b / sin(angle));
 	}
 	
 	static throwProjectile = function() {
