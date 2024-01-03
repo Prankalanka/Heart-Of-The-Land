@@ -118,10 +118,17 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		// We accelerate along the y axes by adding half of our acceleration multiplied the square of time
 		for (var i = 0; i < totalTime; i += 1 * multi) {
 			var yPos = held.y;
-			var _velocity = initVel * i * sin(angle);
-			var _nextAccel = 1/2 * -held.projGrav * sqr(i);
-			var _nextVelocity = _lastVelocity + _nextAccel;
-			yPos += _nextVelocity;
+			var _yVelocity = initVel * i * sin(angle);
+			var _yNextAccel = 1/2 * -held.projGrav * sqr(i); // accel is meters per second squared which is probably why we're squaring i
+			var _yNextVelocity = _yVelocity * weightMulti + _yNextAccel * weightMulti;
+			
+			yPos += _yNextVelocity;
+			
+			var _xPos = held.y;
+			var _yVelocity = initVel * i * sin(angle);
+			var _yNextAccel = 1/2 * -held.projGrav * sqr(i); // accel is meters per second squared which is probably why we're squaring i
+			var _yNextVelocity = _yVelocity * weightMulti + _yNextAccel * weightMulti;
+			
 			var _nextXPos = initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
 			var _nextYPos = (initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
 			
