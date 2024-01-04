@@ -125,9 +125,52 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			yPos += _yNextVelocity;
 			
 			var _xPos = held.y;
-			var _yVelocity = initVel * i * sin(angle);
+			
+			// HOW DO WE HANDLE COLLISIONS AND THE ADDITION OF OTHER FORCES
+			// Once we collide with something on the yAxis we could set our initVel or areAxesOpposite variable to 0 or reverse their sign
+			// But that would affect the x axis, so we not to separatae y and x calculations
+			// Additionally we'd want to reset i in the yAxis calculation
+			// This system is not fun to manaage
+			
+			// USING ENTITY YVEL VAR
+			// We could use our entity's yVel variable, and add the individual acceleration to that
+			
+			// FACTORING OUT "i"
+			// We'd needd to convert initVel * i * sin(angle) + 1/2 * -held.projGrav * sqr(i)
+			// i * (initVel/i * 1 * sin(angle)/i + 1/2 / i * -held.projGrav / i * i)
+			// Those equations should be equal
+			
+			// ADDING ACCELERANTS TO BASE VELOCITY
+			// We'd add the acceleration to the velocity each frame, and multiply that velocity by i to get the velocity of our object
+			// The variable i is better called timeMulti, since we're not relying on it to give us our next position, we're adding instead 
+			// We'll call it timeMulti from now on
+			
+			// Calculating OUR ACTUAL YVEL 
+			// We now can multiply baseVel by timeMulti to get our entity's yVel
+			// It shouldn't affect our end position, just how long it takes to reach it
+			
+			// UPDATE Y FUNCTION
+			// Use the updateY function, or make one that handles bouncing
+			// This can be done with an optional argument that just handles colliding by setting yVel to 0
+			// We could pass in a function that changes the sign and strength of our initialVelocity
+			// And also gets rid of any forces that had the same sign as the direction we collided in (EXCEPT FOR GRAVITY)
+			
+			// CONFIRMING IT SOLVES OUR PROBLEMS OF HANDLING COLLISIONS AND ADDITION OF OTHER FORCES
+			// What would happen if an additional force is added, we'd also just factor out i and add it to the velocity the next frame
+			// Each factored out force, essentially increments in its multiplication each time it is added, so adding another random force midway would work
+			// What would happen when we collide? We reset our yVel to 0 so all the multiplications of each force would be 0, this doesn't actually get rid of those forces in our acceleration equation
+			// So we just get rid of all forces that are the same sign as the direction we collided in
+			// I think that's a plan
+			
+			// We'll start with an array for our projectile, forces
+			// Forces are each 
+			
+			// What would be the acceleration when dding (initVel *  sin(angle)
+			var _yVelocity = initVel * i * sin(angle); // if we could convert this to an acceleration, do we need to?
 			var _yNextAccel = 1/2 * -held.projGrav * sqr(i); // accel is meters per second squared which is probably why we're squaring i
 			var _yNextVelocity = _yVelocity * weightMulti + _yNextAccel * weightMulti;
+			
+			// Could probably have multiple forces acting on som
 			
 			var _nextXPos = initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
 			var _nextYPos = (initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
