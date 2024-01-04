@@ -85,9 +85,9 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			// Put in inventory once we implement it
 			entity.stateMachine.changeState(entity.idleCombatState, 0);
 			
-			held.stateMachine.changeState(entity.idleCombatState, 0);
-			held.stateMachine.changeState(entity.idleState, 1);
-			held.stateMachine.changeState(entity.idleState, 2);
+			held.stateMachine.changeState(held.idleCombatState, 0);
+			held.stateMachine.changeState(held.idleState, 1);
+			held.stateMachine.changeState(held.idleState, 2);
 		}
 	}
 	
@@ -96,7 +96,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	}
 	
 	static drawPath = function() {
-		totalTime = 100;
+		totalTime = 20;
 		var _lastXPos = held.x;
 		var _lastYPos = held.y;
 		
@@ -109,14 +109,13 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			
 			_lastXPos = _nextXPos;
 			_lastYPos = _nextYPos;
+			show_debug_message(initVel * i * sin(angle)); // This is just repeatedly multiplies the first number can add into acceleration
 		}
-		
-		_lastXPos = held.x;
-		_lastYPos = held.y;
 		
 		// We have a speed 
 		// We accelerate along the y axes by adding half of our acceleration multiplied the square of time
 		for (var i = 0; i < totalTime; i += 1 * multi) {
+			/*
 			var yPos = held.y;
 			var _yVelocity = initVel * i * sin(angle);
 			var _yNextAccel = 1/2 * -held.projGrav * sqr(i); // accel is meters per second squared which is probably why we're squaring i
@@ -158,27 +157,19 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			// CONFIRMING IT SOLVES OUR PROBLEMS OF HANDLING COLLISIONS AND ADDITION OF OTHER FORCES
 			// What would happen if an additional force is added, we'd also just factor out i and add it to the velocity the next frame
 			// Each factored out force, essentially increments in its multiplication each time it is added, so adding another random force midway would work
-			// What would happen when we collide? We reset our yVel to 0 so all the multiplications of each force would be 0, this doesn't actually get rid of those forces in our acceleration equation
+			// What would happen when we collide? We reset our yVel to 0 so all the multiplications  of each force would be 0, this doesn't actually get rid of those forces in our acceleration equation
 			// So we just get rid of all forces that are the same sign as the direction we collided in
 			// I think that's a plan
 			
 			// We'll start with an array for our projectile, forces
 			// Forces are each 
 			
-			// What would be the acceleration when dding (initVel *  sin(angle)
+			// What would be the acceleration when dding (initVel *  sin(angle)#
 			var _yVelocity = initVel * i * sin(angle); // if we could convert this to an acceleration, do we need to?
 			var _yNextAccel = 1/2 * -held.projGrav * sqr(i); // accel is meters per second squared which is probably why we're squaring i
 			var _yNextVelocity = _yVelocity * weightMulti + _yNextAccel * weightMulti;
-			
+			*/
 			// Could probably have multiple forces acting on som
-			
-			var _nextXPos = initVel * i * weight *cos(angle) * areAxesOpposite + held.x; 
-			var _nextYPos = (initVel * i * weight * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
-			
-			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
-			
-			_lastXPos = _nextXPos;
-			_lastYPos = _nextYPos;
 		}
 	}
 	
@@ -202,7 +193,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 
 		// Not sure why the maths works, I just know that we can rearrange the equation to get this
 		initVel = -1 * ((_b / sin(angle)) * _magnitude/ 150); // I know sin gives us direction, and magnitude gives us power
-		show_debug_message([radtodeg(angle),  initVel, height, _b, sin(angle)]);
+		//show_debug_message([radtodeg(angle),  initVel, height, _b, sin(angle)]);
 	}
 	
 	static aimProjectilePos = function () {
@@ -236,7 +227,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 		var _data =  [initVel, angle, multi, areAxesOpposite];
 		
 		held.stateMachine.changeState(held.projectileState, 0, _data);
-		held.stateMachine.changeState(held.projectileState, 1, _data);
-		held.stateMachine.changeState(held.projectileState, 2, _data);
+		held.stateMachine.changeState(held.projectileState, 1);
+		held.stateMachine.changeState(held.projectileState, 2);
 	}
 }
