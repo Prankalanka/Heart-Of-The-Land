@@ -40,7 +40,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	held = undefined;
 	
 	height = 0;
-	multi = 0.1;
+	multi = 0.15;
 	angle = 0;
 	initVel = 0;
 	areAxesOpposite = 1;
@@ -109,7 +109,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			
 			_lastXPos = _nextXPos;
 			_lastYPos = _nextYPos;
-			show_debug_message(initVel * i * sin(angle)); // This is just repeatedly multiplies the first number can add into acceleration
+			//show_debug_message(initVel * i * sin(angle)); // This is just repeatedly multiplies the first number can add into acceleration
 		}
 		
 		// We have a speed 
@@ -140,12 +140,14 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			// Those equations should be equal
 			
 			// ADDING ACCELERANTS TO BASE VELOCITY
-			// We'd add the acceleration to the velocity each frame, and multiply that velocity by i to get the velocity of our object
-			// The variable i is better called timeMulti, since we're not relying on it to give us our next position, we're adding instead 
+			// We take each individual accelerant and multiply it by "i"
+			// The variable i is better called timeMulti, since we're not relying on it to run the equation, just how fast it should run
 			// We'll call it timeMulti from now on
 			
 			// Calculating OUR ACTUAL YVEL 
-			// We now can multiply baseVel by timeMulti to get our entity's yVel
+			// We now just add that all to our yVel,
+			// We can make the addition cumulative when we just want to continue the force
+			// We can reset y to 0 when we don't want to
 			// It shouldn't affect our end position, just how long it takes to reach it
 			
 			// UPDATE Y FUNCTION
@@ -157,12 +159,24 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			// CONFIRMING IT SOLVES OUR PROBLEMS OF HANDLING COLLISIONS AND ADDITION OF OTHER FORCES
 			// What would happen if an additional force is added, we'd also just factor out i and add it to the velocity the next frame
 			// Each factored out force, essentially increments in its multiplication each time it is added, so adding another random force midway would work
-			// What would happen when we collide? We reset our yVel to 0 so all the multiplications  of each force would be 0, this doesn't actually get rid of those forces in our acceleration equation
+			// What would happen when we collide? We reset our yVel to 0 so all the multiplications of each force would be 0, this doesn't actually get rid of those forces in our acceleration equation
 			// So we just get rid of all forces that are the same sign as the direction we collided in
+			// How do we turn initVel into acceleration?
+			// In the previous equation, "i" would be multiplied by initVel, increasing every frame
+			// Now initVel is being added onto every frame, we just need to multiply it by timeMulti, which is a constant value unlike "i", to get it scaled to the speed we want without changing the path
+			// What would happen if a thrust force is overtaken, I tihnk we should get rid of it somehow for the equation to be balanced
+			// Thrust forces require contact so they're always impulses (when colliding with other moveable stuff we can do an equation to see how much the impulse should be)
+			// Therefore we really only need one thrust force at a time, we can reset our friction and/or gravity every time that impulse occurs
 			// I think that's a plan
 			
 			// We'll start with an array for our projectile, forces
-			// Forces are each 
+			// There are three types of force that we're going to worry about
+			// Thrust, Gravity, and Friction/Drag
+			// These will be stored in an array, thrust being the first index, friction/drag second, and gravity third because the x axis doesn't have gravity
+			// The thrust is a calculation like initVel that linearly gets bigger but is subtracted from by friction which probably also linearly enlarges, and gravity which expenonentially enlarges
+			// Once a thrust calculation is not going to be the same sign as the net force of that axis, the gravity and friction reset and the thrust is set to 0
+			
+			// Thrust is like what we have with our initVel, it is applied once but equationally it's there forever
 			
 			// What would be the acceleration when dding (initVel *  sin(angle)#
 			var _yVelocity = initVel * i * sin(angle); // if we could convert this to an acceleration, do we need to?

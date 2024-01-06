@@ -138,6 +138,15 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	lastYPos = 0;
 	initPos = [];
 	
+	xForces = [[0], 0];
+	xRepeatAccel = 0;
+	
+	yForces = [[0], 0, 0];
+	yRepeatAccel = 0;
+	
+	timeMulti = 1; // 1 is 100% 2 is 200% 0.1 is 10%
+	framesToRepeat = 0;
+	
 	static updLogic = function() {
 		updProjectileVel();
 		
@@ -164,13 +173,58 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 	}
 	
 	static updProjectileVel = function() {
-		show_debug_message([initVel, angle]);
+		/*
+		
+		// Should forces be unseperated since we add
+		
+		// Say we have just thrown the object at force1, it's acceleration is instantly 10,-9
+		force = [10, -9];
+		// Our acceleration is then left to drag and gravity and it starts deceleratubg both 
+		force = [-1, 3];
+		// The acceleration of gavity stays constant whilst drag's grows
+		force = [-2, 3];
+		
+		// If we've repeated our accel enough
+		// Recalculate the repeatAccel and framesToRepeat
+		if framesToRepeat == 0 {
+			
+			var xNetAccel = calculateNetAccel(xForces);
+			var yNetAccel = calculateNetAccel(yForces);
+			
+			framesToRepeat = 1/timeMulti; // Set how many times we repeat to how many times we need to how many times our time multiplier value fits into 1
+			
+			xRepeatAccel = xNetAccel / framesToRepeat; 
+			yRepeatAccel = yNetAccel / framesToRepeat; 
+		}
+		
+		entity.xVel += xRepeatAccel;
+		entity.yVel += yRepeatAccel;
+		
+		with entity {
+			updX(sign(xVel));
+			updY();
+		}
+		
+		framesToRepeat -= 1;
+		*/
+		// two options
+		// if we use accel
+		
+		
+		// To change how fast the simulation is we'd check if our framesToRepeat value is 0
+		// If it is calculate the netAccel and multiply it by the 1/timeMulti which gives us the a fraction of the nextAccel value for that repeated frame
+		// Store that vlaue so that we don't calculate it again and add it to the yVel
+		// Then set framesToRepeat to 1/timeMulti
+		// Decrement it every frame and whilst it isn't 0 repeat the addition
+		
+		
 		// For 100 frames
 		if projectileFrame < 100 {
 			
+			projectileFrame += 1 * multi;
 			// Find the next position we're going to
-			var _nextXPos = initVel * projectileFrame * cos(angle) * areAxesOpposite;
-			var _nextYPos = (initVel * projectileFrame *  sin(angle) - (1/2) *  -entity.projGrav * sqr(projectileFrame));
+			var _nextXPos = (initVel) * projectileFrame *cos(angle) * areAxesOpposite;
+			var _nextYPos = (initVel) * projectileFrame * sin(angle) - (1/2)*  -entity.projGrav * sqr(projectileFrame);
 			
 			// Make the xVel the difference between the next position and the last position
 			entity.xVel = _nextXPos - lastXPos;
@@ -180,12 +234,66 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			lastXPos = _nextXPos;
 			lastYPos = _nextYPos;
 			
-			projectileFrame += 1 * multi;
+			
+		// Testing for how multiple forces affect the sequence of our velocity
+		// There are a few options:
+		// Not scaling with multi at all which will keep the velocity value constant
+		// Scaling with multi through addition, not tested but probably similar to multiplication
+		// Scaling with multi through multiplication, which makes the sequence linear
+		// Scaling with multi through squaring, which makes the sequence quadratic 
+		// Scaling with multi through cubing, which makes the sequence cubic
+		
+		// We probably only need to scale with squaring, so our velocity sequence is quadratic and only has 2 differences
+		
+		var _y1 = (initVel) * (multi * 1) * sin(angle) - (1/2) *  -entity.projGrav * sqr(multi * 1); //- (1/2) * power(multi * 1, 2);
+		var _y2 = (initVel) * (multi * 2) * sin(angle) - (1/2) *  -entity.projGrav * sqr(multi * 2); //- (1/2) * power(multi * 2, 2);
+		var _y3 = (initVel) * (multi * 3) * sin(angle) - (1/2) *  -entity.projGrav * sqr(multi * 3); //- (1/2) * power(multi * 3, 2);
+		var _y4 = (initVel) * (multi * 4) * sin(angle) - (1/2) *  -entity.projGrav * sqr(multi * 4); //- (1/2) * power(multi * 4, 2);
+		
+		var _y12Diff = _y1 - _y2;
+		var _y23Diff = _y2 - _y3;
+		var _y34Diff = _y3 - _y4;
+		var diffOfDIff1 = _y12Diff - _y23Diff;
+		var diffOfDIff2 = _y23Diff - _y34Diff;
+		var _thirdDiff = diffOfDIff1 - diffOfDIff2;
+		
+		// The current velocity is the initial velocity subtracted by an acceleration that scales with projectileFrame
+		var _yVel = _y1 - diffOfDIff1 * (projectileFrame/multi -1);
+		
+		show_debug_message(string_format(entity.y, 4, 10));
+		show_debug_message( [diffOfDIff1,
+		string_format(_y1 - diffOfDIff1* (projectileFrame/multi - 1) , 4, 10),
+		string_format(entity.yVel, 4, 10) 
+		]);
+			
 		}
+		/*
+		 initVel * cos(angle) * (i+1) - initVel * cos(angle) * i = nextYVel1
+		 initVel * cos(angle) ((i+1) - i)
+		 initVel * cos(angle) ((i+1) - (i+1) -1)
+		 initVel * cos(angle) (-1) 
+		 
+		 initVel * cos(angle) * -2 
+		 
+		 initVel * cos(angle) * (i+2) - initVel * cos(angle) * (i+1) = nextYVel2
+		 ( initVel * cos(angle) * (i+2) - initVel * cos(angle) * (i+1) ) - initVel * cos(angle) * (i+2) - initVel * cos(angle) * (i+1) = nextAccel
+		 
+		 i+1 = i + 1
+		 i+2 = i+1 + 1 = i + 2
+		 
+		 i 
+		 
+		 ((initVel) * i * sin(angle) - (1/2) *  -entity.projGrav * sqr(i)) - ((initVel) * (i+1) * sin(angle) - (1/2) *  -entity.projGrav * sqr((i+1)));
+		 initVel * sin(angle) (i)  - (1/2) * -entity.projGrav (sqr(i)) - i
+		 initVel * 1 
+		 
+		 */
+		
 		else {
 			entity.xVel = entity.xVel * entity.decel;
 			entity.yVel = entity.yVel * entity.decel;
 		}
+		
 	}
 	
 	static drawPath = function() {
@@ -202,6 +310,24 @@ function ProjectileState(_id, _animName) : AbilityState(_id, _animName) construc
 			_lastXPos = _nextXPos;
 			_lastYPos = _nextYPos;
 		}
+	}
+	
+	static calculateNetAccel = function(_forces) {
+		var netAccel = 0;
+		// Find net acceleration of axis by looping through each force in the array
+		// Special case for looping through nested array of thrust forces 
+		for (var i = 0; i < array_length(_forces); i++) {
+			if i == 0 {
+				for (var j = 0; j < array_length(_forces[i]); j++) {
+					netAccel += _forces[i][j];
+				}
+			}
+			else {
+				netAccel += _forces[i]; // Will have influence of timeMulti and weight here (ACTUALLY WEIGHT PROBABLY JUST IN FRICTION)
+			}
+		}
+		
+		return netAccel;
 	}
 }
 
