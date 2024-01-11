@@ -59,7 +59,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	
 	static updLogic = function() {
 		if entity == plyr { // Player always wants to aim projectile cuz we wanna draw it or 
-			aimProjectilePos(); 
+			aimProjectilePlyr(); 
 		}
 		
 		doChecks();
