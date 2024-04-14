@@ -1,14 +1,14 @@
 /// Super class for all ability states
 /// Switches to either Idle, Move or InAir states once ability is done
-function AbilityState(_entity, _anims, _data = undefined) : EntityState(_entity, _anims, _data = undefined) constructor {
+function AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 		
 	static checkAbility1 = function() {
 		if inRegion[1] {
 			if entity.xVel == 0 and inputHandler.xInputDir == 0 {
-				stateMachine.requestChange(entity.idleState, 1);
+				stateMachine.requestChange(STATEHIERARCHY.idle, 1);
 			} else {
-				stateMachine.requestChange(entity.walkState, 1);
+				stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 			}
 		}
 	}
@@ -16,20 +16,20 @@ function AbilityState(_entity, _anims, _data = undefined) : EntityState(_entity,
 	static checkAbility2 = function() {
 		if inRegion[2] {
 			if !entity.isBelow {
-				stateMachine.requestChange(entity.inAirState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
 			}
 			else {
 				if entity.xVel == 0 and inputHandler.xInputDir == 0 {
-					stateMachine.requestChange(entity.idleState, 2);
+					stateMachine.requestChange(STATEHIERARCHY.idle, 2);
 				} else {
-					stateMachine.requestChange(entity.walkState, 2);
+					stateMachine.requestChange(STATEHIERARCHY.walk, 2);
 				}
 			}
 		}
 	}
 }
 
-function JumpState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function JumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Jump";
 	static num = STATEHIERARCHY.jump;
 	static abilitySEnter = sEnter;
@@ -72,7 +72,7 @@ function JumpState(_entity, _anims, _data = undefined) : AbilityState(_entity, _
 	}
 }
 
-function DashState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function DashState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Dash";
 	static num = STATEHIERARCHY.dash;
 	dir = 0;
@@ -118,7 +118,7 @@ function DashState(_entity, _anims, _data = undefined) : AbilityState(_entity, _
 	
 	static checkWalk1 = function() {
 		if dashFrame == 15 and abs(entity.xVel) >= entity.walkState.xVelMax {
-			stateMachine.requestChange(entity.walkState, 1);
+			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 		}
 	}
 		
@@ -129,7 +129,7 @@ function DashState(_entity, _anims, _data = undefined) : AbilityState(_entity, _
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(entity.climbState, 1, [_wallDir]);
+			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
 		}
 	}
 		
@@ -147,7 +147,7 @@ function DashState(_entity, _anims, _data = undefined) : AbilityState(_entity, _
 	}
 }
 
-function ProjectileState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function ProjectileState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Projectile";
 	static num = STATEHIERARCHY.projectile;
 
@@ -506,7 +506,7 @@ function ProjectileState(_entity, _anims, _data = undefined) : AbilityState(_ent
 	}
 }
 
-function HeldState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function HeldState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Held";
 	static num = STATEHIERARCHY.held;
 	holder = undefined;
@@ -521,7 +521,7 @@ function HeldState(_entity, _anims, _data = undefined) : AbilityState(_entity, _
 	}
 }
 
-function ClimbState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Climb";
 	static num = STATEHIERARCHY.climb;
 	surface = undefined; 
@@ -550,12 +550,6 @@ function ClimbState(_entity, _anims, _data = undefined) : AbilityState(_entity, 
 		inputHandler.upReleasedSinceClimb = false;
 	}
 	
-	// Slowly fall like in hollow knight by holding w
-	// Fall fast by holding s and w
-	// Let go by releasing w
-	// Let go and jump by pressing space
-	// Let go by not touching it
-	// Maybe allow functionality for dashing off
 	static updLogic = function() {
 		if inputHandler.wallSlideHeld {
 			entity.yVel = slideDownerVel;
@@ -572,8 +566,8 @@ function ClimbState(_entity, _anims, _data = undefined) : AbilityState(_entity, 
 	
 	static checkWallJump12 = function() {
 		if inputHandler.jumpInput {
-			stateMachine.requestChange(entity.wallJumpState, 1, [wallDir]);
-			stateMachine.requestChange(entity.wallJumpState, 2);
+			stateMachine.requestChange(STATEHIERARCHY.wallJump, 1, [wallDir]);
+			stateMachine.requestChange(STATEHIERARCHY.wallJump, 2);
 		}
 	}
 	
@@ -613,7 +607,7 @@ function ClimbState(_entity, _anims, _data = undefined) : AbilityState(_entity, 
 	}
 }
 
-function WallJumpState(_entity, _anims, _data = undefined) : AbilityState(_entity, _anims, _data = undefined) constructor {
+function WallJumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Wall Jump";
 	static num = STATEHIERARCHY.wallJump;
 	xInitVel = _data[0];
@@ -634,7 +628,6 @@ function WallJumpState(_entity, _anims, _data = undefined) : AbilityState(_entit
 		entity.yVel = yInitVel;
 		
 		WJFrame = 0;
-		entity.walkState.walkVel = 0;
 	}
 	
 	// Follow a parabola on the x axis as well as the y axis 
@@ -694,7 +687,7 @@ function WallJumpState(_entity, _anims, _data = undefined) : AbilityState(_entit
 	/// If we try to move completely stop the parabola on the x axis and just let the player control normally
 	static checkWalk1= function() {
 		if inputHandler.xInputDir != 0 {
-			stateMachine.requestChange(entity.walkState, 1);
+			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 		}
 	}
 
@@ -706,10 +699,10 @@ function WallJumpState(_entity, _anims, _data = undefined) : AbilityState(_entit
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 
 			if inRegion[1] {
-				stateMachine.requestChange(entity.climbState, 1, [_wallDir]);
+				stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
 			}
 			if inRegion[2] {	
-				stateMachine.requestChange(entity.climbState, 2, [_wallDir]);
+				stateMachine.requestChange(STATEHIERARCHY.climb, 2, [_wallDir]);
 			}
 		}
 	}

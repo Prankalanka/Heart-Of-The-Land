@@ -1,8 +1,8 @@
-function CombatState(_entity, _anims, _data = undefined) : EntityState(_entity, _anims, _data = undefined) constructor {
+function CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 }
 
-function IdleCombatState(_entity, _anims, _data = undefined) : CombatState(_entity, _anims, _data = undefined) constructor {
+function IdleCombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
 	static num = STATEHIERARCHY.idleCombat;
 	
@@ -31,7 +31,7 @@ function IdleCombatState(_entity, _anims, _data = undefined) : CombatState(_enti
 	}
 }
 
-function HoldState(_entity, _anims, _data = undefined) : CombatState(_entity, _anims, _data = undefined) constructor {
+function HoldState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Hold";
 	static num = STATEHIERARCHY.hold;
 	

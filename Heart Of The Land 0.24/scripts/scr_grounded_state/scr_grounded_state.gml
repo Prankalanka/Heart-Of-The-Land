@@ -1,11 +1,6 @@
 /// Super class for all grounded states.
-function GroundedState(_entity, _anims, _data = undefined) : EntityState(_entity, _anims, _data = undefined) constructor {
+function GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	xInputDir = 0;
-	
-	/// You don't keep acceleration when you collide with an object 
-	static groundedSEnter = function(_data = undefined) {
-		yVel = 0;
-	}
 	
 	/// Update xInput
 	static groundedUpdLogic = function() {
@@ -14,19 +9,17 @@ function GroundedState(_entity, _anims, _data = undefined) : EntityState(_entity
 	
 	/// Check region 1 state changes
 	static checkGrounded1 =  function() { // Turn changes into functions
-		if entity.autonomous {
-			// Changes to Dash State if there's input
-			if inputHandler.dashInput != 0 {
-				stateMachine.requestChange(entity.dashState, 1);
-			}
-			if (entity.inAirState.inRegion[2] or entity.wallJumpState.inRegion[2]) and inputHandler.climbHeld and entity.checkSurface() {
-				// Check if our x value is closer to the left or right bbox boundary
-				var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(entity.x);
-				var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
-				var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
+		// Changes to Dash State if there's input
+		if inputHandler.dashInput != 0 {
+			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
+		}
+		if (!entityData.isBelow and inputHandler.climbHeld and entityData.checkSurface() {
+			// Check if our x value is closer to the left or right bbox boundary
+			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(entity.x);
+			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
+			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-				stateMachine.requestChange(entity.climbState, 1, [_wallDir]);
-			}
+			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
 		}
 	}
 	
@@ -36,14 +29,14 @@ function GroundedState(_entity, _anims, _data = undefined) : EntityState(_entity
 		if entity.autonomous {
 			// Changes to InAir state if nothing is below us
 			if  !(entity.isBelow) {
-				stateMachine.requestChange(entity.inAirState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
 			} // Changes to Jump State if there's input
 			else if inputHandler.jumpInput and !entity.isAbove {
-				stateMachine.requestChange(entity.jumpState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.jump, 2);
 			}
 			// Changes to Dash State if there's input
 			if inputHandler.dashInput != 0 {
-				stateMachine.requestChange(entity.dashState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 			}
 		}
 	}
@@ -51,7 +44,7 @@ function GroundedState(_entity, _anims, _data = undefined) : EntityState(_entity
 }
 
 /// Changes to move state if xInput
-function IdleState(_entity, _anims, _data = undefined) : GroundedState(_entity, _anims, _data = undefined) constructor {
+function IdleState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle";
 	static num = STATEHIERARCHY.idle;
 	
@@ -71,7 +64,7 @@ function IdleState(_entity, _anims, _data = undefined) : GroundedState(_entity, 
 		if entity.autonomous {
 			// Go to move state if input
 			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.requestChange(entity.walkState, 1);
+				stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 			}
 		}
 	}
@@ -80,7 +73,7 @@ function IdleState(_entity, _anims, _data = undefined) : GroundedState(_entity, 
 		if entity.autonomous {
 			// Go to walk state if input
 			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.requestChange(entity.walkState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.walk, 2);
 			}
 		}
 	}
@@ -109,7 +102,7 @@ function IdleState(_entity, _anims, _data = undefined) : GroundedState(_entity, 
 }
 
 /// Changes to IdleState if no xInput and xVel is 0
-function WalkState(_entity, _anims, _data = undefined) : GroundedState(_entity, _anims, _data = undefined) constructor {
+function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Walk";
 	static num = STATEHIERARCHY.walk;
 	walkVel = _data[0];
@@ -178,13 +171,13 @@ function WalkState(_entity, _anims, _data = undefined) : GroundedState(_entity, 
 	/// Go to idle state if no input and no velocity	
 	static checkIdle1 = function() {
 		if xInputDir == 0 and xVel == 0 {
-			stateMachine.requestChange(entity.idleState, 1);
+			stateMachine.requestChange(STATEHIERARCHY.idle, 1);
 		}
 	}	
 	/// Go to idle state if no input and no velocity
 	static checkIdle2 = function() {
 		if xInputDir == 0 and xVel == 0 {
-			stateMachine.requestChange(entity.idleState, 2);
+			stateMachine.requestChange(STATEHIERARCHY.idle, 2);
 		}	
 	}
 	
@@ -303,7 +296,7 @@ function WalkState(_entity, _anims, _data = undefined) : GroundedState(_entity, 
 
 #region Useless State
 /*
-function GroundMotionState(_entity, _anims, _data = undefined) : GroundedState(_entity, _anims, _data = undefined) constructor {
+function GroundMotionState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Ground Motion";
 	static num = 6;
 	static groundedUpdLogic = updLogic;
@@ -359,7 +352,7 @@ function GroundMotionState(_entity, _anims, _data = undefined) : GroundedState(_
 			entity.xVel = ((fakeMaxSpeed * power(_nextwalkVel, walkVarB)) / (power(walkVarA, walkVarB) + power(_nextwalkVel, walkVarB))) * sign(xVel);
 			entity.walkVel = _nextwalkVel * sign(xVel);
 			with entity {updX(sign(xVel));}
-			stateMachine.requestChange(entity.walkState, 1);
+			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 		}
 	}
 	checkGrounded1();

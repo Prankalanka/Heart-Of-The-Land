@@ -1,4 +1,4 @@
-function InAirState(_entity, _anims, _data = undefined) : EntityState(_entity, _anims, _data = undefined) constructor {
+function InAirState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "InAir";
 	static num = STATEHIERARCHY.inAir;
 	static stateSEnter = sEnter;
@@ -50,17 +50,17 @@ function InAirState(_entity, _anims, _data = undefined) : EntityState(_entity, _
 		if entity.isBelow {
 			//show_debug_message("hh");
 			if inputHandler.xInputDir == 0 and entity.xVel == 0 {
-				stateMachine.requestChange(entity.idleState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.idle, 2);
 			}
 			else {
-				stateMachine.requestChange(entity.walkState, 2);
+				stateMachine.requestChange(STATEHIERARCHY.walk, 2);
 			}
 		}
 	}
 	
 	static checkJump2 = function() {
 		if  !entity.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump {
-			stateMachine.requestChange(entity.jumpState, 2);
+			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
 		}
 	}
 		
@@ -71,14 +71,14 @@ function InAirState(_entity, _anims, _data = undefined) : EntityState(_entity, _
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(entity.climbState, 2, [_wallDir]);
+			stateMachine.requestChange(STATEHIERARCHY.climb, 2, [_wallDir]);
 		}
 	}
 	
 	static checkDash2 = function() {
 		// Changes to Dash State if there's input
 		if inputHandler.dashInput != 0 {
-			stateMachine.requestChange(entity.dashState, 2);
+			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
 	

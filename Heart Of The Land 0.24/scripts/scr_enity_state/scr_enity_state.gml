@@ -1,12 +1,11 @@
 /// The super class of all entity states.
-function EntityState(_entity, _anims, _data = undefined) constructor {
-	entity = _entity;
+function EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+	entityData = _entityData; // Contains data specific to the entity, and any shared input that states need
+	stateMachine = _stateMachine;
+	inputHandler = _inputHandler;
 	anims = _anims; // All anims we can switch to within the state
 	activeAnims = anims; // Current anims, that we switch between based on dirFacing
-	stateMachine = entity.stateMachine;
-	stateInput = {};
-	blackBoard = entity.stateMachine.blackBoard;
-	inputHandler = entity.inputHandler;
+	stateInput = {}; // Contains input specific to the state
 	inRegion = [false, false, false]; // Which region(s) the state is in
 	// Bools so we don't run duplistate updLogic or checkChanges functions multiple times
 	updated = false; 
