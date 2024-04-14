@@ -1,25 +1,40 @@
-// If we're dead we shouldn't do anything
+// If we're dead we shouldn't do anything that frame
 checkHp(); // player health state
 
-moveCamera(); // player camera state
+moveCamera(); // camera object
 
 inputHandler.checkInputs();
-// Something to decide if we need to switch states
+
+// var _requestingData = stateMachine.requestData
+
 stateMachine.updLogic();
 
+// Idle combat state
 if mouse_check_button(mb_left)  and attackCd
 {
-	attackExec();
+	attackExec(); // function belonging to attack combat state
 }
 
+// projectile testing T-T
 if keyboard_check_pressed(ord("Z")) {
 	holdState.weight += 0.05;
 	
 }
 
+
 //DEBUGGING
-//show_debug_message(xVel);
-stateMachine.showNames();
+if  keyboard_check_pressed(ord("V")) {
+	show_debug_message(xVelArray);
+}
+show_debug_message([
+xVel,
+walkState.walkVel,
+walkState.walkAccel
+]);
+
+show_debug_message([
+yVel
+]);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);
@@ -36,4 +51,4 @@ stateMachine.showNames();
 //show_debug_message(yDir);
 //show_debug_message(magnitude);
 //show_debug_message(state);
-//show_debug_message(inputHandler.dashInput);
+//show_debug_message(inputHandler.climbHeld);

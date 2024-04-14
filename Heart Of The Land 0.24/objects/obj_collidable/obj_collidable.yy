@@ -1,9 +1,9 @@
 {
   "$GMObject":"",
-  "%Name":"obj_platform",
+  "%Name":"obj_collidable",
   "eventList":[],
   "managed":true,
-  "name":"obj_platform",
+  "name":"obj_collidable",
   "overriddenProperties":[],
   "parent":{
     "name":"Terrain",
@@ -27,13 +27,7 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":{
-    "name":"spr_grassy_floor",
-    "path":"sprites/spr_grassy_floor/spr_grassy_floor.yy",
-  },
+  "spriteId":null,
   "spriteMaskId":null,
-  "tags":[
-    "climbable",
-  ],
   "visible":true,
 }

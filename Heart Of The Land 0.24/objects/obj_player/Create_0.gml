@@ -1,6 +1,9 @@
+#region Input Handler Setup
 inputHandler = {
 	xInputDir : 0,
 	checkWalk : function() {
+		xInputDir = 0;
+		
 		var _left = keyboard_check(vk_left) or keyboard_check(ord("A"));
 	    var _right = keyboard_check(vk_right) or keyboard_check(ord("D"));
 
@@ -8,7 +11,6 @@ inputHandler = {
 	},
 	
 	jumpInput : false, // For now only one variable, but might seperate into multiple vars for more control
-	framesToPeak : 30,
 	spaceReleasedSinceJump : true,
 	jumpBufferMax : 14,
 	jumpBuffer : 0,
@@ -24,17 +26,17 @@ inputHandler = {
 				// (VERY IMPORTANT) Only set false when we have done a valid jump
 			spaceReleasedSinceJump = true;
 		}
-	
+		
 		if keyboard_check_pressed(vk_space) {
 			jumpBuffer = jumpBufferMax;
-		} else {
+		} else if jumpBuffer > 0{
 			jumpBuffer -= 1;
 		}
 
 		// Counts up to 31 when holding space, resets only when space is released since we've succesfully jumped
 		// if we haven't done a valid jump since we've released space it doesn't increment
 		// meaning it won't increment if we're mid-jump, release space and then try to jump again, there's no air jump yet so jumping mid-air does nothing
-		if !spaceReleasedSinceJump and currJumpFrame < framesToPeak + 1 {
+		if !spaceReleasedSinceJump and currJumpFrame < other.jumpState.framesToPeak + 1 {
 			currJumpFrame++;
 		} else if spaceReleasedSinceJump { 
 			currJumpFrame = 0;
@@ -50,6 +52,8 @@ inputHandler = {
 	dashBuffer : [0, 0], // Input Handler
 	dashBufferMax : 18, // Input Handler
 	checkDash : function() {
+		dashInput = 0;
+		
 		if (keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A"))) // and cooldown
 	    {
 	        // Reset the other buffer so that we don't dash if we're quickly changing directions
@@ -96,68 +100,108 @@ inputHandler = {
 	
 	holdInput : false,
 	throwPos : [0,0],
-	holdInputHeld : false,
+	holdHeld : false,
 	holdCancel : false,
 	checkThrow : function() {
+		holdInput = false;
+		
 		// Set hold input and held to true at first frame
 		if mouse_check_button_pressed(mb_right) {
 			holdInput = true;
-			holdInputHeld = true;
+			holdHeld = true;
 		}
 		
 		// Keep held true and update throwPos  if we're holding
-		holdInputHeld = mouse_check_button(mb_right);
-		if holdInputHeld {throwPos = [mouse_x, mouse_y];}
+		holdHeld = mouse_check_button(mb_right);
+		if holdHeld {throwPos = [mouse_x, mouse_y];}
 		
 		// Check if we're trying to cancel (make this put it into our inventory if it can)
 		holdCancel = mouse_check_button_pressed(mb_left);
 	},
 	
-
-	checkInputs : function() {
-		xInputDir = 0;
-		jumpInput = false;
-		dashInput = 0;
-		swingInput = false;
-		holdInput = false;
-		
-		checkWalk();
-		checkJump();
-		checkDash();
-		checkSwing();
-		checkThrow();
+	climbHeld : false,
+	wallSlideHeld : false,
+	upReleasedSinceClimb : true,
+	surface : undefined,
+	checkClimb : function() {
+		// Keep true if we're holding
+		climbHeld = (keyboard_check(ord("W")) or keyboard_check(vk_up))? true : false;
+		wallSlideHeld = (keyboard_check(ord("S")) or keyboard_check(vk_down))? true : false;
+		if keyboard_check_released(ord("W")) {
+			upReleasedSinceClimb = true;
+		}
 	},
 	
+	checkNothing : function() {
+	}, 
+	
+	/// Check every input in the inputFunctions array
+	checkInputs : function() {	
+		var _len = array_length(inputFunctions);
+		
+		for (var i = 0; i < _len; i++) {
+			inputFunctions[i]();
+		}
+	},
 }
 
+inputHandler.inputFunctions = [inputHandler.checkWalk, inputHandler.checkJump, inputHandler.checkDash, inputHandler.checkThrow, inputHandler.checkClimb];
+#endregion
+
+// Player Data contains all the stuff tied to the context, the player, which has no point in being organised separately
+#region Player Data Setup
+colliderArray = [obj_platform];
+
+isBelow = place_meeting(x, (y + 1), colliderArray);
+isAbove = place_meeting(x, (y - 1), colliderArray);
 
 xVel = 0;
 yVel = 0;
 
-xVelClamp = 8; 
+dirFacing = 0;
 
-walkFrame = 0;
-fakeMaxSpeed = 8.7
-walkVarA = 7.5
-walkVarB = 2;
-walkMulti = 1;
-decel = 0.9;
+autonomous = true;
+showRequests = true;
 
-// Jump State
-peak = -280;
-framesToPeak = 24;
-initJumpVel = (2 * peak) / framesToPeak + peak/sqr(framesToPeak);
-grav = (2 * peak) / sqr(framesToPeak);
+xVelArray = [];
+#endregion
 
-coyoteBuffer = 0; // Player Data
-coyoteMax = 9; // Player Data
-
-// Player Data
+// Make a health region eventally 
+#region Health State Setup
+// Health state or smthn
 maxHp = 100;
 hp = maxHp;
 attack = 50;
 attackCd = true;
 
+#endregion
+
+#region Walk State Setup
+// Walk State
+var _walkVel = 0;
+var _fakeMaxSpeed = 11;
+var _walkVarA = 12;
+var _walkVarB = 2;
+var _walkAccel = 1.4;
+var _decel = 0.9;
+var _walkAccelDef = 1.4;
+var _walkAccelMax = 3.25;
+
+#endregion
+
+#region Jump / In Air State Setup
+// Jump State
+var _peak = -300;
+var _framesToPeak = 25;
+var _initJumpVel = (2 * _peak) / _framesToPeak + _peak/sqr(_framesToPeak);
+var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
+
+// In Air State
+var _coyoteMax = 9;
+var  _yVelMax = 28;
+#endregion
+
+#region Swing State Setup
 // Only needed inside the swing state except for collision (swing-exclusive collide function? can be done through polymorphism)
 swing = undefined;
 swingX = 0;
@@ -165,12 +209,32 @@ swingY = 0;
 swingAngleVelocity = 0;
 swingAngle = 0;
 swingDistance = 100;
-  
-// data
-isBelow = place_meeting(x, (y + 1), obj_platform);
-isAbove = place_meeting(x, (y - 1), obj_platform);
 
-// moveCamera
+#endregion
+
+#region Climb State Setup
+// Climb
+var _slideDownVel = 6;
+var _slideDownerVel = 10;
+
+#endregion
+
+#region Wall Jump Setup
+// Wall Jump
+var _xWJPeak = -80;
+var _xWJFramesToPeak = 16;
+var _xWJInitVel = (2 * _xWJPeak) / _xWJFramesToPeak + _xWJPeak/sqr(_xWJFramesToPeak);
+var _xWJGrav = (2 * _xWJPeak) / sqr(_xWJFramesToPeak);
+
+var _yWJPeak = -250;
+var _yWJFramesToPeak = 19;
+var _yWJInitVel = (2 * _yWJPeak) / _yWJFramesToPeak + _yWJPeak/sqr(_yWJFramesToPeak);
+var _yWJGrav = (2 * _yWJPeak) / sqr(_yWJFramesToPeak);
+
+#endregion
+
+#region Camera Object Setup Eventually
+// Should be in camera object
 targetX = x - camera_get_view_width(view_camera[0]) / 2;
 targetY = y - 1000;
 targetX = lerp(targetX, mouse_x, 0.4);
@@ -179,10 +243,7 @@ targetY = lerp(targetY, mouse_y, 0.4);
 camX = lerp(camera_get_view_x(view_camera[0]), targetX, 0.3);
 camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.3);
 
-lastDirFaced = 0;
-prioStateAnims = [];
-
-autonomous = true;
+#endregion
 
 #region Old Functions
 
@@ -191,16 +252,15 @@ autonomous = true;
 // Basically we'll accelerate the graph if we're inputting a different direction than we're going, and also really fast when we're not inputting anything
 
 function walkUpd(_xInputDir) {
-    // Alter our acceleration  depending on the situation (there should be one for aerial movement) (maybe not actually)
-	
-	if _xInputDir != 0 and abs(xVel) <= xVelClamp{
+    // Alter our acceleration  depending on the situation
+	if _xInputDir != 0 and abs(xVel) <= xVelMax{
 	    // Probably make conditions into vars for more readability
 	    if abs(xVel) < 3 {
 	        // If we're below an absolute velocity of 3, accelerate slower
 	        xDecel = 0.999;
 	        xAccel = 0.4;
 	    }
-	    else if sign(xVel) != _xInputDir and abs(xVel) < xVelClamp {
+	    else if sign(xVel) != _xInputDir and abs(xVel) < xVelMax {
 	        // If we're pressing a different direction than we're moving 
 	        // If we're actually pointing a way
 	        // If we're below the clamp
@@ -215,7 +275,7 @@ function walkUpd(_xInputDir) {
 		    xAccel = (xAccel < 2.5) ? xAccel + 0.05 : 2.5;
 		}
 	}
-	else if abs(xVel) <= xVelClamp {
+	else if abs(xVel) <= xVelMax {
 		// If we aren't pressing a direction
 		// Slow down real fast
 		xDecel = 0.83;
@@ -232,12 +292,12 @@ function walkUpd(_xInputDir) {
     // This makes movement feel smooth and not like you're hitting a random wall and can't go any faster
     var _nextXVel = (xVel + xAccel * 1.2 * _xInputDir) * xDecel;
 
-    if abs(xVel) > xVelClamp {
+    if abs(xVel) > xVelMax {
         // If we're going above the limit and in the same direction as before
         // Don't add anything to the acceleration 
         _nextXVel = xVel * xDecel;
         xVel = _nextXVel;
-    } /*else if abs(xVel) > xVelClamp and _xInputDir != sign(xVel) {
+    } /*else if abs(xVel) > xVelMax and _xInputDir != sign(xVel) {
         // If we're going above the limit and not in the same direction
         // Add acceleration allowing for players to cut their dashes short
         _nextXVel = (xVel + xAccel * 1.2 * _xInputDir) * xDecel;
@@ -245,7 +305,7 @@ function walkUpd(_xInputDir) {
     } */ 
 	else {
         // Otherwise use the normal acceleration and clamp
-        xVel = (abs(_nextXVel) < xVelClamp) ? _nextXVel : xVelClamp * _xInputDir;
+        xVel = (abs(_nextXVel) < xVelMax) ? _nextXVel : xVelMax * _xInputDir;
     }
 	floorXVel();
 }
@@ -378,109 +438,122 @@ function moveCamera() {
     camera_set_view_pos(view_camera[0], camX, camY);
 }
 #endregion
-#region New Functions
 
-updYVel = function(_grav = grav) {
-	// If the change in yVel is self-inflicted
-	if _grav == grav {
-		// Fall faster when you aren't continuing a jump but you're still going upwards (variable/min jump height) 
-		if (inputHandler.currJumpFrame == 0 or inputHandler.currJumpFrame == 31) and sign(yVel) == -1{
-		    yVel -= _grav * 2;
-		}
-		// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
-		// (not starting one, cuz that's handled by the jump state) but else is more optimal
-		else if yVel < 28 {
-			if sign(yVel) == -1 {
-				yVel -= _grav;
-			}
-			else {
-				yVel -= _grav * 1.3;
-			}
+#region New Entity Functions (Used by multiple states, so more efficient to store in the context)
+/// @function	updGrav()
+/// @description	Augments a velocity by a given or default gravity.
+updGrav = function(_grav, axis, _clamp = 1000000) {
+	if axis == 0 {
+		// Only augment if the nextXVel is below the clamp
+		var _nextXVel = xVel - _grav;
+		if abs(_clamp) >  abs(_nextXVel) {
+			xVel = _nextXVel;
 		}
 	}
 	else {
-		yVel -= _grav;
-	}
-}
-
-updCoyote = function() { 
-	// The coyote buffer is set to a max value every time we're grounded
-    // but decremented every frame we're in the air, until it reaches 0
-    if coyoteBuffer > 0 {
-        // Decrement it
-        coyoteBuffer--;
-    }
-}
-
-
-function updWalk(_xInputDir) {
-	
-	// Fast decelerate + Lerp
-	// If we're not trying to go anywhere 
-	if _xInputDir == 0 {
-		_xInputDir = sign(walkFrame) * -1; // Make dir the opposite sign of walkFrame
-		walkMulti = 2.5; // Accelerate way faster
-		
-		// If we're exceeding the limit set walk frame to 0
-		if sign(walkFrame + _xInputDir * walkMulti) != sign(walkFrame) {
-			_xInputDir = 0;
-			walkFrame = 0;
+		// Only needs to be below the clamp if it's negative
+		var _nextYVel = yVel - _grav;
+		if abs(_clamp) >  abs(_nextYVel) or sign(_nextYVel) == -1 {
+			yVel = _nextYVel;
 		}
 	}
-	// If we're inputting a different direction than we're going 
-	// Accelerate faster even over the point where we reach 0
-	else if _xInputDir != sign(walkFrame + _xInputDir) {
-		walkMulti = 2.5; // Accelerate faster
-	}
-	
-	var _nextWalkFrame = walkFrame +  _xInputDir * walkMulti;
-	
-	// Limit walkFrame from 25 to -25
-	if abs(_nextWalkFrame) < 25 {
-		walkFrame = _nextWalkFrame;
-	} 
-	else {
-		walkFrame = 25 * _xInputDir;
-	}
-	
-	// Could make an array of 25 integer values, and only calculate decimal values
-	var _nextXVel = ((fakeMaxSpeed * power(walkFrame, walkVarB)) / (power(walkVarA, walkVarB) + power(walkFrame, walkVarB))) * sign(walkFrame);
-	
-	xVel = _nextXVel;
-	
-	// Reset stuff
-	walkMulti = 1;
 }
 
-updXVel = function() {
-	// Update xVel when above the cap
-	if abs(xVel) * decel <= xVelClamp and abs(xVel) > xVelClamp {
-		walkFrame = 25 * sign(xVel) ;
-		updWalk(inputHandler.xInputDir); 
+/// @function	checkSurface()
+/// @description	Looks for an instance in order of distance, touching our extended collision mask in whatever direction. If it has the "climbable" tag and we are facing it, set the value of inputHandle.surface and return true.
+checkSurface = function(_currentSurface = undefined) {
+	var _instList = ds_list_create();
+	
+	var _extBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
+	var _dirFacing = (dirFacing == 0)? 1 : -1;
+	var _listLength = collision_rectangle_list(_extBox[0] + sprite_width / 10 * _dirFacing, _extBox[1], _extBox[2] + sprite_width / 10 * _dirFacing, _extBox[3], all, false, true, _instList, true);
+	
+	
+	if _listLength != 0 {
+	   for (var i = 0; i < _listLength; i++) {
+		   if _instList[|i] != _currentSurface and asset_has_tags(_instList[|i].object_index, "climbable") {
+			   // Check if our x value is closer to the left or right bbox boundary
+				var _rightDiff = abs( _instList[|i].bbox_right) - abs(x);
+				var _leftDiff = abs(_instList[|i].bbox_left) - abs(x);
+				var _wallDir = (abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
+			   
+			   show_debug_message(_wallDir);
+			   
+			   // Only attach if we're running into the wall
+			   if inputHandler.xInputDir == _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
+				   inputHandler.surface = _instList[|i];
+				   ds_list_destroy(_instList);
+				   return true; // breaks out of function, not loop
+			   }
+		   }
+	   }
 	}
-	else {
-		xVel = xVel * decel;
-	}
-}
-
+	ds_list_destroy(_instList);
+	return false;
+} 
 
 #endregion
 
-// The struct that changes the player's state, calling states' enter and exit functions
-stateMachine = new EntityStateMachine();
+#region State Machine and State Setup
+
+// State machine
+// The struct that runs the logic for states, checking for changes, running enter and exit functions when they change, and running the updlogic and updAnim functions
+stateMachine = new EntityStateMachine(id);
 
 // STATES
+// Containers for logic and variables specific to that state
 idleState  = new IdleState(id, [spr_idle_right, spr_idle_left]);
-walkState = new WalkState(id, [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left]);
-inAirState = new InAirState(id, [spr_jump_right, spr_jump_left]);
-jumpState = new JumpState(id, [spr_jump_right, spr_jump_left]);
+walkState = new WalkState(id, [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left], [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax]);
+inAirState = new InAirState(id, [spr_jump_right, spr_jump_left], [_grav, _coyoteMax, _yVelMax]);
+jumpState = new JumpState(id, [spr_jump_right, spr_jump_left], [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax]);
 dashState = new DashState(id, [spr_idle_right, spr_idle_left]);
 projectileState = new ProjectileState(id, [spr_jump_right, spr_jump_left]);
 idleCombatState = new IdleCombatState(id, [spr_idle_right, spr_idle_left]);
 holdState = new HoldState(id, [spr_idle_right, spr_idle_left, spr_idle_right, spr_idle_left]); // hold animations whilst walking
+climbState = new ClimbState(id, [spr_idle_right, spr_idle_left, spr_idle_right, spr_idle_left], [_slideDownVel, _slideDownerVel]); 
+wallJumpState = new WallJumpState(id, [spr_idle_right, spr_idle_left, spr_idle_right, spr_idle_left], [_xWJInitVel, _xWJFramesToPeak, _xWJPeak, _xWJGrav, _yWJInitVel, _yWJFramesToPeak, _yWJPeak, _yWJGrav]); 
 
 // INITIALISE THE STATE MACHINE
 var _startingStates = [idleCombatState, idleState, idleState];
 stateMachine.init(_startingStates);
 
-// Could make swing state, or rework movement a bit and add projectile state
+// walkVel testing
+for (var i = 0; i <= 8.94; i += 0.01) {
+	var _convWalkVel = power((-(power(walkState.walkVarA, -walkState.walkVarB) * (-walkState.fakeMaxSpeed + i))/i), (-1/walkState.walkVarB));
+	array_push(xVelArray, [i, _convWalkVel]);
+}
+#endregion
+
+// NEXT STEPS
+// Movement feels halfway to alright, but we wanna know how it feels with the full movement system so we're doing that
+// Leaving physics alone for a while 
+// Might change the names of some functions
+//	Adding climb state:
+// Get it to release when you're not touching it anymore (if there is another wall in the collision box don't change state, just change the surface to that surface) YAAAAAAAAA
+// Get wallDir to depend on which bbox you're closest to, not the last direction you faced YAAAAAAAAAAAAAAAA
+// Get an press input variable in addition to the held one we already have NAAAAAAAA it's not as good
+// Get an input variable to make sure we facing the wall that we want to climb YAAAAAAAAAAAAAAAAAAA
+// Fall at a constant speed YAAAAAAAAAAAAAAAAAAA
+// Fall slower for the first few frames of climbing NAAAAAAAAAAAAAAAAAAAA It's worse
+// Have a tiny cooldown for previously climbed surfaces (part of wall jumping, less of a buffer for letting go if there even is one)
+// Get wall jump working
+// Get wall jump to follow a predetermined path if not interfered with using updGrav, if interfered with, switch control of the axis (region) to the other state
+// We'll do this on the x axis by converting the walkVel to one that corresponds with the current xVel, inAir doesn't really need to change
+// Get a generalised animation update for each state YAAAAAAAAAAAAAAAAAAAAAA
+// Improve the checkStuck function
+// GET RID OF THAT AUTONOMOUS BULLSHIT
+
+// BUGS
+// We get stuck on corners sometimes, I think due to our animation, but we should already unstuck ourselves when we change animation, also should also implement not getting stuck to be more aware of the direction we just took, so that it could more accurately unstuck us instead of just taking the shortest distance
+// Dash + climb thing where we are at a different x position than the bbox boundary YAAAAAAAAAAAA it was because we didn't check at the end of the frame actually, that could bug out in a lot of ways, maybe all checks should be performed at the end of the frame or the start
+// URGENT, MAKE STATES CHECK AT THE SAME TIME WITHOUT CHANGING ANYTHING UNTIL WE ACTUALLY CHANGE THE STATES YAAAAAAAAAAAAAAAAAAAA
+// CLamp grav to 28 again YAAAAAAAAAAAAAAAAAAAAa
+// Wall jump needs to know which dir to jump in YAAAAAAAAAAAAAAAAAAAAa
+// Weird walk bug, where you jitter, it was an old one who's fix i deleted YAAAAAAAAAAAAAAAAAAAAAAa
+// THE ULTIMATE BUG, ONE THAT IS NOT MY OWN: SIMULTANEOUS KEY PRESSES OF SPACE, THE RIGHT ARROW KEY, AND ANOTHER KEY MEANS SPACE WILL NOT BE RECOGNISED
+// WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME
+
+// CLEAN UP
+// In the state machine we have a for loop that we use a lot to determine our state hierarchy, turn it into a function YAAAaaa
+// WE ARE MOVING STATE SPECIFIC FUNCTIONS AND VARIABLES TO THE STATE YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+// BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, input the non-conditional variables, then decide whether or

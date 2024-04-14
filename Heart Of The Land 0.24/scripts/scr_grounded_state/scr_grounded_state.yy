@@ -1,11 +1,13 @@
 {
-  "resourceType": "GMScript",
-  "resourceVersion": "1.0",
-  "name": "scr_grounded_state",
-  "isCompatibility": false,
-  "isDnD": false,
-  "parent": {
-    "name": "Entity States",
-    "path": "folders/Scripts/Entity/Entity State Machine/Entity States.yy",
+  "$GMScript":"",
+  "%Name":"scr_grounded_state",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_grounded_state",
+  "parent":{
+    "name":"Entity States",
+    "path":"folders/Scripts/Entity/Entity State Machine/Entity States.yy",
   },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
 }

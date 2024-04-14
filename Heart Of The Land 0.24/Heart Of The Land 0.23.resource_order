@@ -1,5 +1,5 @@
 {
-  "FolderOrderSettings": [
+  "FolderOrderSettings":[
     {"name":"Animation Curves","order":12,"path":"folders/Animation Curves.yy",},
     {"name":"Extensions","order":14,"path":"folders/Extensions.yy",},
     {"name":"Fonts","order":7,"path":"folders/Fonts.yy",},
@@ -34,9 +34,10 @@
     {"name":"Tile Sets","order":2,"path":"folders/Tile Sets.yy",},
     {"name":"Timelines","order":8,"path":"folders/Timelines.yy",},
   ],
-  "ResourceOrderSettings": [
+  "ResourceOrderSettings":[
     {"name":"obj_player","order":1,"path":"objects/obj_player/obj_player.yy",},
     {"name":"obj_rocc","order":5,"path":"objects/obj_rocc/obj_rocc.yy",},
+    {"name":"obj_collidable","order":3,"path":"objects/obj_collidable/obj_collidable.yy",},
     {"name":"spr_toenail","order":2,"path":"sprites/spr_toenail/spr_toenail.yy",},
     {"name":"CLOUD2","order":1,"path":"sprites/CLOUD2/CLOUD2.yy",},
     {"name":"Entities","order":4,"path":"objects/Entities/Entities.yy",},
@@ -54,7 +55,7 @@
     {"name":"spr_tree","order":4,"path":"sprites/spr_tree/spr_tree.yy",},
     {"name":"spr_jump_left","order":4,"path":"sprites/spr_jump_left/spr_jump_left.yy",},
     {"name":"bg4","order":9,"path":"sprites/bg4/bg4.yy",},
-    {"name":"obj_tree","order":7,"path":"objects/obj_tree/obj_tree.yy",},
+    {"name":"obj_tree","order":2,"path":"objects/obj_tree/obj_tree.yy",},
     {"name":"bg2","order":7,"path":"sprites/bg2/bg2.yy",},
     {"name":"SKY","order":5,"path":"sprites/SKY/SKY.yy",},
     {"name":"spr_bat","order":4,"path":"sprites/spr_bat/spr_bat.yy",},

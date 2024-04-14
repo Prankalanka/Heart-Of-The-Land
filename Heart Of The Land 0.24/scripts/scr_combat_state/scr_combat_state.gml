@@ -1,39 +1,37 @@
-function CombatState(_id, _animName) : EntityState(_id, _animName) constructor{
+function CombatState(_entity, _anims, _data = undefined) : EntityState(_entity, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 }
 
-function IdleCombatState(_id, _animName) : CombatState(_id, _animName) constructor{
+function IdleCombatState(_entity, _anims, _data = undefined) : CombatState(_entity, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
 	static num = STATEHIERARCHY.idleCombat;
 	
-	
 	static updLogic = function() {
-		doChecks();
 	}
 	
-	doChecks = function() {
+	checkChanges = function() {
 		checkHold();
 	}
 	
 	static checkHold = function() {
-		if entity.inputHandler.holdInput {
+		if inputHandler.holdInput {
 			// Check if there's any near throwables (when inventory implemented check that first)
 			with entity {
 				if place_meeting(x, y, par_throwable) {
 					var _held = instance_nearest(x, y, par_throwable);
 					
 					// Done here so they're at the hold and held states at the same time
-					stateMachine.changeState(holdState, 0, _held);
-					_held.stateMachine.changeState(_held.heldState, 0, id);
-					_held.stateMachine.changeState(_held.heldState, 1, id);
-					_held.stateMachine.changeState(_held.heldState, 2, id);
+					stateMachine.requestChange(holdState, 0, _held);
+					_held.stateMachine.requestChange(_held.heldState, 0, id);
+					_held.stateMachine.requestChange(_held.heldState, 1, id);
+					_held.stateMachine.requestChange(_held.heldState, 2, id);
 				}
 			}
 		}
 	}
 }
 
-function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
+function HoldState(_entity, _anims, _data = undefined) : CombatState(_entity, _anims, _data = undefined) constructor {
 	static name = "Hold";
 	static num = STATEHIERARCHY.hold;
 	
@@ -62,32 +60,31 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 			aimProjectilePlyr(); 
 		}
 		
-		doChecks();
 	}
 	
-	doChecks = function() {
+	checkChanges = function() {
 		checkRelease();
 		checkCancel();
 	}
 	
 	static checkRelease = function() {
-		if !entity.inputHandler.holdInputHeld {
+		if !inputHandler.holdHeld {
 			if entity != plyr {
 				aimProjectilePos();
 			}
 			throwProjectile(); // Changes held's state
-			stateMachine.changeState(entity.idleCombatState, 0);
+			stateMachine.requestChange(entity.idleCombatState, 0);
 		}
 	}
 	
 	static checkCancel = function() {
-		if entity.inputHandler.holdCancel {
+		if inputHandler.holdCancel {
 			// Put in inventory once we implement it
-			entity.stateMachine.changeState(entity.idleCombatState, 0);
+			entity.stateMachine.requestChange(entity.idleCombatState, 0);
 			
-			held.stateMachine.changeState(held.idleCombatState, 0);
-			held.stateMachine.changeState(held.idleState, 1);
-			held.stateMachine.changeState(held.idleState, 2);
+			held.stateMachine.requestChange(held.idleCombatState, 0);
+			held.stateMachine.requestChange(held.idleState, 1);
+			held.stateMachine.requestChange(held.idleState, 2);
 		}
 	}
 	
@@ -213,7 +210,7 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	static aimProjectilePos = function () {
 		areAxesOpposite = 1;
 		// WE'RE USING RADIANS		
-		var _targetPos = entity.inputHandler.throwPos;
+		var _targetPos = inputHandler.throwPos;
 		var _sqrX = sqr(held.x - _targetPos[0]);
 		var _sqrY = sqr(held.y - _targetPos[1]);
 		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
@@ -240,8 +237,9 @@ function HoldState(_id, _animName) : CombatState(_id, _animName) constructor{
 	static throwProjectile = function() {
 		var _data =  [initVel, angle, multi, areAxesOpposite];
 		
-		held.stateMachine.changeState(held.projectileState, 0, _data);
-		held.stateMachine.changeState(held.projectileState, 1);
-		held.stateMachine.changeState(held.projectileState, 2);
+		held.stateMachine.requestChange(held.projectileState, 0, _data);
+		held.stateMachine.requestChange(held.projectileState, 1);
+		held.stateMachine.requestChange(held.projectileState, 2);
 	}
 }
+	
