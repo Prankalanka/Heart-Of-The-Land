@@ -1,4 +1,4 @@
-inputHandler =  {
+userInput =  {
 	projectileInput : false,
 	holdInput : false,
 }
@@ -19,11 +19,11 @@ decel = 0.87;
 stateMachine = new EntityStateMachine(id);
 
 // STATES
-idleState = new IdleState(entityData, stateMachine, inputHandler [spr_rocc, spr_rocc]);
-projectileState = new ProjectileState(entityData, stateMachine, inputHandler [spr_rocc, spr_rocc]);
-heldState = new HeldState(entityData, stateMachine, inputHandler [spr_rocc, spr_rocc]);
+idleState = new IdleState(persistVar, stateMachine, userInput [spr_rocc, spr_rocc]);
+projectileState = new ProjectileState(persistVar, stateMachine, userInput [spr_rocc, spr_rocc]);
+heldState = new HeldState(persistVar, stateMachine, userInput [spr_rocc, spr_rocc]);
 heldState.checkChanges = function() {};
-idleCombatState = new IdleCombatState(entityData, stateMachine, inputHandler [spr_rocc, spr_rocc]);
+idleCombatState = new IdleCombatState(persistVar, stateMachine, userInput [spr_rocc, spr_rocc]);
 
 idleState.checkChanges1 = function() {};
 idleState.checkChanges2 = function() {};

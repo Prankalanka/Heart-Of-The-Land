@@ -3,7 +3,7 @@ checkHp(); // player health state
 
 moveCamera(); // camera object
 
-inputHandler.checkInputs();
+userInput.checkInputs();
 
 // var _requestingData = stateMachine.requestData
 
@@ -51,4 +51,4 @@ yVel
 //show_debug_message(yDir);
 //show_debug_message(magnitude);
 //show_debug_message(state);
-//show_debug_message(inputHandler.climbHeld);
+//show_debug_message(userInput.climbHeld);

@@ -1,11 +1,11 @@
 /// Super class for all ability states
 /// Switches to either Idle, Move or InAir states once ability is done
-function AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 		
 	static checkAbility1 = function() {
 		if inRegion[1] {
-			if entity.xVel == 0 and inputHandler.xInputDir == 0 {
+			if entity.xVel == 0 and userInput.xInputDir == 0 {
 				stateMachine.requestChange(STATEHIERARCHY.idle, 1);
 			} else {
 				stateMachine.requestChange(STATEHIERARCHY.walk, 1);
@@ -19,7 +19,7 @@ function AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data =
 				stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
 			}
 			else {
-				if entity.xVel == 0 and inputHandler.xInputDir == 0 {
+				if entity.xVel == 0 and userInput.xInputDir == 0 {
 					stateMachine.requestChange(STATEHIERARCHY.idle, 2);
 				} else {
 					stateMachine.requestChange(STATEHIERARCHY.walk, 2);
@@ -29,7 +29,7 @@ function AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data =
 	}
 }
 
-function JumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function JumpState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Jump";
 	static num = STATEHIERARCHY.jump;
 	static abilitySEnter = sEnter;
@@ -44,9 +44,9 @@ function JumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 		isAbilityDone = false;
 		
 		// Set input values (these handle if we're continuing a jump or not)
-		inputHandler.spaceReleasedSinceJump = false;
-		inputHandler.currJumpFrame = 1;
-		inputHandler.jumpBuffer = 0;
+		userInput.spaceReleasedSinceJump = false;
+		userInput.currJumpFrame = 1;
+		userInput.jumpBuffer = 0;
 	}
 	
 	static updLogic = function() {
@@ -61,7 +61,7 @@ function JumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	static updAnim = function() {
 		with entity {
 			// Change anim if we change direction
-			sprite_index = jumpState.activeAnims[faceDir(inputHandler.xInputDir)];
+			sprite_index = jumpState.activeAnims[faceDir(userInput.xInputDir)];
 			checkStuck();
 		}
 	}
@@ -72,7 +72,7 @@ function JumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 }
 
-function DashState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function DashState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Dash";
 	static num = STATEHIERARCHY.dash;
 	dir = 0;
@@ -81,7 +81,7 @@ function DashState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	
 	static sEnter = function(_data = undefined) {	
 		// Update dir
-		dir = inputHandler.xInputDir * -1;
+		dir = userInput.xInputDir * -1;
 		
 		// Reset dashFtame
 		dashFrame = 0;
@@ -123,10 +123,10 @@ function DashState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 		
 	static checkClimb1 = function() {
-		if inputHandler.climbHeld and entity.checkSurface() {
+		if userInput.climbHeld and entity.checkSurface() {
 			// Check if our x value is closer to the left or right bbox boundary
-			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(entity.x);
-			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
+			var _rightDiff = abs(userInput.surface.bbox_right) - abs(entity.x);
+			var _leftDiff = abs(userInput.surface.bbox_left) - abs(entity.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
 			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
@@ -147,7 +147,7 @@ function DashState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 }
 
-function ProjectileState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function ProjectileState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Projectile";
 	static num = STATEHIERARCHY.projectile;
 
@@ -506,7 +506,7 @@ function ProjectileState(_entityData, _stateMachine, _inputHandler, _anims, _dat
 	}
 }
 
-function HeldState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function HeldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Held";
 	static num = STATEHIERARCHY.held;
 	holder = undefined;
@@ -521,7 +521,7 @@ function HeldState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 }
 
-function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function ClimbState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Climb";
 	static num = STATEHIERARCHY.climb;
 	surface = undefined; 
@@ -534,11 +534,11 @@ function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = u
 		wallDir = _data[0];
 		
 		// Reset jumpBuffer so that we don't buffer a jump mid-air, climb, and then jump off because of the buffer
-		inputHandler.jumpBuffer = 0;
+		userInput.jumpBuffer = 0;
 		
 		// Set surface, reset surface, and add surface to colliderArray
-		surface = inputHandler.surface;
-		inputHandler.surface = undefined; // Avoid glitches 
+		surface = userInput.surface;
+		userInput.surface = undefined; // Avoid glitches 
 		
 		// Set the enity's x to the edge of the surface's x
 		entity.x = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
@@ -547,11 +547,11 @@ function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = u
 		entity.xVel = 0;
 		entity.yVel = 0;
 		
-		inputHandler.upReleasedSinceClimb = false;
+		userInput.upReleasedSinceClimb = false;
 	}
 	
 	static updLogic = function() {
-		if inputHandler.wallSlideHeld {
+		if userInput.wallSlideHeld {
 			entity.yVel = slideDownerVel;
 		}
 		else {
@@ -565,14 +565,14 @@ function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = u
 	}
 	
 	static checkWallJump12 = function() {
-		if inputHandler.jumpInput {
+		if userInput.jumpInput {
 			stateMachine.requestChange(STATEHIERARCHY.wallJump, 1, [wallDir]);
 			stateMachine.requestChange(STATEHIERARCHY.wallJump, 2);
 		}
 	}
 	
 	static checkRelease12 = function() {
-		if !inputHandler.climbHeld {
+		if !userInput.climbHeld {
 			checkAbility1();
 			checkAbility2();
 		}
@@ -599,15 +599,15 @@ function ClimbState(_entityData, _stateMachine, _inputHandler, _anims, _data = u
 	
 	static changeSurface = function() {
 		// Set surface and reset entity surface
-		surface = inputHandler.surface;
-		inputHandler.surface = undefined; // Avoid glitches 
+		surface = userInput.surface;
+		userInput.surface = undefined; // Avoid glitches 
 		
 		// Set the enity's x to the edge of the surface's x
 		entity.x = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
 	}
 }
 
-function WallJumpState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function WallJumpState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : AbilityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Wall Jump";
 	static num = STATEHIERARCHY.wallJump;
 	xInitVel = _data[0];
@@ -686,16 +686,16 @@ function WallJumpState(_entityData, _stateMachine, _inputHandler, _anims, _data 
 	
 	/// If we try to move completely stop the parabola on the x axis and just let the player control normally
 	static checkWalk1= function() {
-		if inputHandler.xInputDir != 0 {
+		if userInput.xInputDir != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 		}
 	}
 
 	static checkClimb12 = function() {
-		if inputHandler.climbHeld and entity.checkSurface() { 
+		if userInput.climbHeld and entity.checkSurface() { 
 			// Check if our x value is closer to the left or right bbox boundary
-			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(entity.x);
-			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
+			var _rightDiff = abs(userInput.surface.bbox_right) - abs(entity.x);
+			var _leftDiff = abs(userInput.surface.bbox_left) - abs(entity.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 
 			if inRegion[1] {

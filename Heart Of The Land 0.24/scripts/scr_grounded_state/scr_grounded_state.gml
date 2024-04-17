@@ -1,22 +1,22 @@
 /// Super class for all grounded states.
-function GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	xInputDir = 0;
 	
 	/// Update xInput
 	static groundedUpdLogic = function() {
-		xInputDir = inputHandler.xInputDir;
+		xInputDir = userInput.xInputDir;
 	}
 	
 	/// Check region 1 state changes
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
-		if inputHandler.dashInput != 0 {
+		if userInput.dashInput != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
 		}
-		if (!entityData.isBelow and inputHandler.climbHeld and entityData.checkSurface() {
+		if !persistVar.isBelow and userInput.climbHeld and (userInput.surface != undefined or tempVar.checkSetSurface()) {
 			// Check if our x value is closer to the left or right bbox boundary
-			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(entity.x);
-			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(entity.x);
+			var _rightDiff = abs(userInput.surface.bbox_right) - abs(persistVar.x);
+			var _leftDiff = abs(userInput.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
 			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
@@ -25,84 +25,63 @@ function GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data 
 	
 	/// Check region 2 changes
 	static checkGrounded2 =  function() { // Turn changes into functions
-		entity.yVel = 0; // So InAir knows we've been grounded, also perfomance
-		if entity.autonomous {
-			// Changes to InAir state if nothing is below us
-			if  !(entity.isBelow) {
-				stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
-			} // Changes to Jump State if there's input
-			else if inputHandler.jumpInput and !entity.isAbove {
-				stateMachine.requestChange(STATEHIERARCHY.jump, 2);
-			}
-			// Changes to Dash State if there's input
-			if inputHandler.dashInput != 0 {
-				stateMachine.requestChange(STATEHIERARCHY.dash, 2);
-			}
+		persistVar.yVel = 0; // So InAir knows we've been grounded, also perfomance
+		// Changes to InAir state if nothing is below us
+		if  !(persistVar.isBelow) {
+			stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
+		} // Changes to Jump State if there's input
+		else if userInput.jumpInput and !persistVar.isAbove {
+			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
+		}
+		// Changes to Dash State if there's input
+		if userInput.dashInput != 0 {
+			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
 	
 }
 
 /// Changes to move state if xInput
-function IdleState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function IdleState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Idle";
 	static num = STATEHIERARCHY.idle;
 	
 	static updLogic = function() {
-		if entity.autonomous {
-			groundedUpdLogic();  // Update xInput
-		}
+		groundedUpdLogic();  // Update xInput
 	}
 	
 	static updAnim = function() {
-		if entity.autonomous {
-			with entity {sprite_index = idleState.activeAnims[faceDir(inputHandler.xInputDir)];}
+		sprite_index = idleState.activeAnims[faceDir(userInput.xInputDir)];
+	}
+	
+	static checkWalk12 = function() {
+		// Go to move state if input
+		if xInputDir != 0 or persistVar.xVel != 0 {
+			if inRegion[1] {stateMachine.requestChange(STATEHIERARCHY.walk, 1);}
+			if inRegion[2] {stateMachine.requestChange(STATEHIERARCHY.walk, 2);}
 		}
 	}
 	
-	static checkWalk1 = function() {
-		if entity.autonomous {
-			// Go to move state if input
-			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.requestChange(STATEHIERARCHY.walk, 1);
-			}
-		}
-	}
-	
-	static checkWalk2 = function() {
-		if entity.autonomous {
-			// Go to walk state if input
-			if xInputDir != 0 or entity.xVel != 0 {
-				stateMachine.requestChange(STATEHIERARCHY.walk, 2);
-			}
-		}
-	}
 	
 	checkChanges1 = function() {
-		checkWalk1();
 	}
 	
 	checkChanges2 = function() {
-		checkWalk2();
-
 	}
 	
 	checkChanges = function() {
 		if inRegion[1] {
-			checkChanges1();
 			checkGrounded1();
-		}
-		
+		}	
 		if inRegion[2] {
-			checkChanges2();
 			checkGrounded2();
 		}
+		checkWalk12();
 	}
-	
 }
 
 /// Changes to IdleState if no xInput and xVel is 0
-function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Walk";
 	static num = STATEHIERARCHY.walk;
 	walkVel = _data[0];
@@ -133,7 +112,7 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	
 	static updLogic = function () {
 		groundedUpdLogic(); // Update xInput 
-		xVel = entity.xVel;
+		xVel = persistVar.xVel;
 		
 		// Only do when grounded (or when we're not calling the update function from a different state)
 		if inRegion[1] {
@@ -150,36 +129,30 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static updAnim = function() {
-		with entity { 
 			// Change animation depending on if we're pressing anything and the speed is above a certain threshold
-			if inputHandler.xInputDir == 0 and abs(xVel) < 1 {
-				walkState.activeAnims = walkState.idleAnims;
+			if userInput.xInputDir == 0 and abs(xVel) < 1 {
+				activeAnims = idleAnims;
 			}
 			else {
-				walkState.activeAnims = walkState.walkAnims;
+				activeAnims = walkAnims;
 			}
 			
 			// Change anim if we change direction
-			sprite_index = walkState.activeAnims[faceDir(inputHandler.xInputDir)];
+			sprite_index = activeAnims[faceDir(userInput.xInputDir)];
 			// Scale anim speed with x speed
-			image_speed = 0.5 + 0.5 * (abs(xVel)/walkState.xVelMax);
+			image_speed = 0.5 + 0.5 * (abs(xVel)/xVelMax);
 			
 			checkStuck();
 		}
 	}
 		
 	/// Go to idle state if no input and no velocity	
-	static checkIdle1 = function() {
+	static checkIdle12 = function() {
 		if xInputDir == 0 and xVel == 0 {
-			stateMachine.requestChange(STATEHIERARCHY.idle, 1);
+			if inRegion[1] {stateMachine.requestChange(STATEHIERARCHY.idle, 1);}
+			if inRegion[2] {stateMachine.requestChange(STATEHIERARCHY.idle, 2);}
 		}
 	}	
-	/// Go to idle state if no input and no velocity
-	static checkIdle2 = function() {
-		if xInputDir == 0 and xVel == 0 {
-			stateMachine.requestChange(STATEHIERARCHY.idle, 2);
-		}	
-	}
 	
 	checkChanges1 = function() {
 		checkIdle1();
@@ -190,17 +163,14 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	
 	checkChanges = function() {
 		if inRegion[1] {
-			// Check for transitions for this region
-			checkChanges1();
-			
 			// Do parent region1 check
 			checkGrounded1();
 		}
 		if inRegion[2] { 
-			checkChanges2();
 			checkGrounded2();
-		} 
+		}
 		
+		checkIdle12();
 	}
 
 	/// @function		updAccel()
@@ -256,7 +226,7 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 		// show_debug_message([_currXVel, _nextXVel]);
 		
 		var _nextXAccel = _nextXVel - _currXVel;
-		entity.xVel += _nextXAccel;
+		persistVar.xVel += _nextXAccel;
 	}
 	
 	
@@ -264,8 +234,8 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	/// @description	Takes our xVel, and if it's within range finds it on our hill function, and makes walkVel equal to its x value.
 	static convXToWalk = function() {
 		// Assuming a and n are positive
-		if abs(entity.xVel) <= xVelMax {
-			var _convWalkVel = power((-(power(walkVarA, -walkVarB) * (-fakeMaxSpeed + abs(entity.xVel)))/abs(entity.xVel)), (-1/walkVarB)) * sign(entity.xVel);
+		if abs(xVel) <= xVelMax {
+			var _convWalkVel = power((-(power(walkVarA, -walkVarB) * (-fakeMaxSpeed + abs(xVel)))/abs(xVel)), (-1/walkVarB)) * sign(xVel);
 			walkVel = (is_nan(_convWalkVel))? 0 : _convWalkVel;
 		}
 	}
@@ -278,17 +248,17 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	static updXVel = function() {
 		// Update xVel when above the cap
 		if abs(xVel) * decel <= xVelMax {
-			if inputHandler.xInputDir == sign(xVel) {
+			if userInput.xInputDir == sign(xVel) {
 				walkVel = walkVelMax * sign(xVel);
-				entity.xVel = xVelMax * sign(xVel);
+				persistVar.xVel = xVelMax * sign(xVel);
 			}
 			else {
-				entity.xVel = xVel * decel;
+				persistVar.xVel = xVel * decel;
 				convXToWalk();
 			}
 		}
 		else {
-			entity.xVel = xVel * decel;
+			persistVar.xVel = xVel * decel;
 		}
 	}
 }
@@ -296,7 +266,7 @@ function WalkState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 
 #region Useless State
 /*
-function GroundMotionState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function GroundMotionState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Ground Motion";
 	static num = 6;
 	static groundedUpdLogic = updLogic;

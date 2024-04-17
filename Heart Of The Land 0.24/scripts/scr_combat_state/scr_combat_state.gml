@@ -1,8 +1,8 @@
-function CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 }
 
-function IdleCombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function IdleCombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
 	static num = STATEHIERARCHY.idleCombat;
 	
@@ -14,7 +14,7 @@ function IdleCombatState(_entityData, _stateMachine, _inputHandler, _anims, _dat
 	}
 	
 	static checkHold = function() {
-		if inputHandler.holdInput {
+		if userInput.holdInput {
 			// Check if there's any near throwables (when inventory implemented check that first)
 			with entity {
 				if place_meeting(x, y, par_throwable) {
@@ -31,7 +31,7 @@ function IdleCombatState(_entityData, _stateMachine, _inputHandler, _anims, _dat
 	}
 }
 
-function HoldState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function HoldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
 	static name = "Hold";
 	static num = STATEHIERARCHY.hold;
 	
@@ -68,7 +68,7 @@ function HoldState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static checkRelease = function() {
-		if !inputHandler.holdHeld {
+		if !userInput.holdHeld {
 			if entity != plyr {
 				aimProjectilePos();
 			}
@@ -78,7 +78,7 @@ function HoldState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static checkCancel = function() {
-		if inputHandler.holdCancel {
+		if userInput.holdCancel {
 			// Put in inventory once we implement it
 			entity.stateMachine.requestChange(entity.idleCombatState, 0);
 			
@@ -210,7 +210,7 @@ function HoldState(_entityData, _stateMachine, _inputHandler, _anims, _data = un
 	static aimProjectilePos = function () {
 		areAxesOpposite = 1;
 		// WE'RE USING RADIANS		
-		var _targetPos = inputHandler.throwPos;
+		var _targetPos = userInput.throwPos;
 		var _sqrX = sqr(held.x - _targetPos[0]);
 		var _sqrY = sqr(held.y - _targetPos[1]);
 		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;

@@ -41,22 +41,22 @@ stateNameArray = [
 ];
 
 
-/// The class of all entity state machines.
+/// Stores state changes and their data
 function EntityStateMachine() constructor {
 	stateChanges = [[], [], []]; // An array per region
 	stateChanged = false;
 	changeData = [];
 
 	/// Sets stateChanged to true, puts a requested state in the stateChanges 2D array, based on region, and contains any data in the changeData array
-	static requestChange = function(_newState, _region, _data = undefined)
+	static requestChange = function(_newStateNum, _region, _data = undefined)
 	{
 		stateChanged = true;
 		
 		// Push state onto the region array of stateChanges so we change state after this frame
-		array_push(stateChanges[_region], _newState);
+		array_push(stateChanges[_region], _newStateNum);
 		
 		if _data != undefined {
-			changeData[_newState] =  _data;
+			changeData[_newStateNum] =  _data;
 		}
 	}
 	

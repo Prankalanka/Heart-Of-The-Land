@@ -90,26 +90,26 @@ y += yVel;
 
 if place_meeting(x, y, obj_platform) 
 {
-	var pXLength = 1;
-	var nXLength = 1;
+	var _pXLength = 1;
+	var _nXLength = 1;
 	
 	var pYLength = 1;
 	var nYLength = 1;
 
 	
-	while (place_meeting(x + pXLength, y, obj_platform)) { pXLength += 1;}
-	while (place_meeting(x - nXLength, y, obj_platform)) { nXLength += 1;}
+	while (place_meeting(x + _pXLength, y, obj_platform)) { _pXLength += 1;}
+	while (place_meeting(x - _nXLength, y, obj_platform)) { _nXLength += 1;}
 	while (place_meeting(x, y + pYLength, obj_platform)) { pYLength += 1;}
 	while (place_meeting(x, y - nYLength, obj_platform)) { nYLength += 1;}
 	
-	var smolDirX = min(pXLength, nXLength);
+	var smolDirX = min(_pXLength, _nXLength);
 	var smolDirY = min(pYLength, nYLength);
 	
 	
 	if smolDirY == nYLength {
 		smolDirY = smolDirY * -1;
 	}
-	if smolDirX == nXLength {
+	if smolDirX == _nXLength {
 		smolDirX = smolDirX * -1;
 	}
 	

@@ -5,7 +5,8 @@
 function updPosVars() {
 	isBelow = place_meeting(x, (y + 1), colliderArray);
 	isAbove = place_meeting(x, (y - 1), colliderArray);
-	
+	persistVar.x = x;
+	persistVar.y = y;
 }
 
 
@@ -91,18 +92,18 @@ function checkStuck() {
 	// If we're inside a platform we move out of it in the way that moves us the least
 	// (not a perfect solution, but has worked for everything so far)
 	if place_meeting(x, y, colliderArray) {
-		var _pXLength = 1;
-		var _nXLength = 1;
+		var __pXLength = 1;
+		var __nXLength = 1;
 
 		var _pYLength = 1;
 		var _nYLength = 1;
 
 		// Cast a ray that only continues whilst inside the object
-		while (place_meeting(x + _pXLength, y, colliderArray)) {
-			_pXLength += 1;
+		while (place_meeting(x + __pXLength, y, colliderArray)) {
+			__pXLength += 1;
 		}
-		while (place_meeting(x - _nXLength, y, colliderArray)) {
-			_nXLength += 1;
+		while (place_meeting(x - __nXLength, y, colliderArray)) {
+			__nXLength += 1;
 		}
 		while (place_meeting(x, y + _pYLength, colliderArray)) {
 			_pYLength += 1;
@@ -112,13 +113,13 @@ function checkStuck() {
 		}
 
 		// Find the smallest rays from the two axes
-		var _smolDirX = min(_pXLength, _nXLength);
+		var _smolDirX = min(__pXLength, __nXLength);
 		var _smolDirY = min(_pYLength, _nYLength);
 
 		// Turn negative if negative value matches the minimum value
 		if _smolDirY == _nYLength {
 			_smolDirY = _smolDirY * -1;
-		} else if _smolDirX == _nXLength {
+		} else if _smolDirX == __nXLength {
 			_smolDirX = _smolDirX * -1;
 		}
 
@@ -141,13 +142,10 @@ function faceDir(_velOrDir) {
 	    case 1:
 	        dirFacing = 0;
 			return 0;
-	        break;
 	    case -1:
 	        dirFacing = 1;
 			return 1;
-	        break;
 		case 0:
 			return dirFacing;
-			break;
 	}
 }

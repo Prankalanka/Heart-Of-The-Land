@@ -1,8 +1,10 @@
-/// The super class of all entity states.
-function EntityState(_entityData, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
-	entityData = _entityData; // Contains data specific to the entity, and any shared input that states need
+/// Takes specific entity data as input, alters the entity's and its own data depending on input.
+/// Specifically, it can alter which states are active, leading to major behavioural changes.
+function EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+	persistVar = _persistVar; // Contains variables specific to the entity, that states can modify
+	tempVar = _tempVar; // Contains a static amount of variables specific to the entity, that reset each frame 
 	stateMachine = _stateMachine;
-	inputHandler = _inputHandler;
+	userInput = _userInput;
 	anims = _anims; // All anims we can switch to within the state
 	activeAnims = anims; // Current anims, that we switch between based on dirFacing
 	stateInput = {}; // Contains input specific to the state
