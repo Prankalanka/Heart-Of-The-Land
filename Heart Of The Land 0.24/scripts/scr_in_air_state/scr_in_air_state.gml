@@ -1,4 +1,4 @@
-function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function InAirState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "InAir";
 	static num = STATEHIERARCHY.inAir;
 	static stateSEnter = sEnter;
@@ -10,7 +10,7 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _d
 	static sEnter = function(_data) {		
 		// yVel only becomes 0 if we've been grounded, and then transitioned to the inAir state
 		// that's when we want to max out coyote
-		if entity.yVel == 0 {
+		if persistVar.yVel == 0 {
 			coyoteBuffer = coyoteMax;
 		}
 		else {
@@ -19,56 +19,52 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _d
 	}
 	
 	static updLogic = function() {	
-		// Update yVel and Y
-		entity.updGrav(multiGrav() * grav, 1, yVelMax);
-		with(entity) {
-			updY();
-		}
+		// Update yVel
+		updGrav(getGravMulti() * grav, 1, yVelMax);
 			
 		// Update coyote buffer
 		updCoyote();
 	}
 	
-	static updAnim = function() {
-		with entity {
-			// Change anim if we change direction
-			sprite_index = inAirState.activeAnims[faceDir(userInput.xInputDir)];
-			
-			// Change anim if we we ascend or descend
-			if(sign(yVel) == -1) {
-				image_index = 1;
-			}
-			else {
-				image_index = 2;
-			}
-			
-			checkStuck();
+	static getAnimUpd = function() {
+		var _spriteIndex = undefined;
+		var _imageIndex = undefined;
+		
+		// Change anim if we change direction
+		_spriteIndex = activeAnims[faceDir(inputHandler.xInputDir)];
+		
+		// Change anim if we we ascend or descend
+		if(sign(persistVar.yVel) == -1) {
+			_imageIndex = 1;
 		}
+		else {
+			_imageIndex = 2;
+		}
+		
+		return [_spriteIndex, _imageIndex, undefined];
 	}
 	
 	static checkIdleWalk2 = function() {
-		if entity.isBelow {
-			//show_debug_message("hh");
-			if userInput.xInputDir == 0 and entity.xVel == 0 {
+		if persistVar.isBelow {
+			if inputHandler.xInputDir == 0 and persistVar.xVel == 0 {
 				stateMachine.requestChange(STATEHIERARCHY.idle, 2);
-			}
-			else {
+			} else {
 				stateMachine.requestChange(STATEHIERARCHY.walk, 2);
 			}
 		}
 	}
 	
 	static checkJump2 = function() {
-		if  !entity.isAbove and userInput.jumpInput and coyoteBuffer != 0 and userInput.spaceReleasedSinceJump {
+		if  !persistVar.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump {
 			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
 		}
 	}
 		
 	static checkClimb2 = function() {
-		if userInput.climbHeld and entity.checkSurface() {
+		if inputHandler.climbHeld and inputHandler.surface != undefined {
 			// Check if our x value is closer to the left or right bbox boundary
-			var _rightDiff = abs(userInput.surface.bbox_right) - abs(entity.x);
-			var _leftDiff = abs(userInput.surface.bbox_left) - abs(entity.x);
+			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(persistVar.x);
+			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
 			stateMachine.requestChange(STATEHIERARCHY.climb, 2, [_wallDir]);
@@ -77,7 +73,7 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _d
 	
 	static checkDash2 = function() {
 		// Changes to Dash State if there's input
-		if userInput.dashInput != 0 {
+		if inputHandler.dashInput != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
@@ -98,10 +94,10 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _d
 	    }
 	}
 	
-	multiGrav = function() {
-		var _yVel = entity.yVel;
+	getGravMulti = function() {
+		var _yVel = persistVar.yVel;
 		// Fall faster when you aren't continuing a jump but you're still going upwards (variable/min jump height) 
-		if (userInput.currJumpFrame == 0 or userInput.currJumpFrame == 31) and sign(_yVel) == -1{
+		if (inputHandler.currJumpFrame == 0 or inputHandler.currJumpFrame == 31) and sign(_yVel) == -1{
 			return  2;
 		}
 		// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
@@ -118,5 +114,4 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _d
 			return 1;
 		}
 	}
-
 }

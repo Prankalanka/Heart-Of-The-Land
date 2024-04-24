@@ -3,7 +3,7 @@
 
 draw_self();
 
-if stateMachine.activestates[1] == projectileState {
+if stateMachine.activeStates[1] == projectileState {
 	projectileState.drawPath();
 }
 

@@ -1,22 +1,22 @@
 /// Super class for all grounded states.
-function GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	xInputDir = 0;
 	
 	/// Update xInput
 	static groundedUpdLogic = function() {
-		xInputDir = userInput.xInputDir;
+		xInputDir = inputHandler.xInputDir;
 	}
 	
 	/// Check region 1 state changes
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
-		if userInput.dashInput != 0 {
+		if inputHandler.dashInput != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
 		}
-		if !persistVar.isBelow and userInput.climbHeld and (userInput.surface != undefined or tempVar.checkSetSurface()) {
+		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined {
 			// Check if our x value is closer to the left or right bbox boundary
-			var _rightDiff = abs(userInput.surface.bbox_right) - abs(persistVar.x);
-			var _leftDiff = abs(userInput.surface.bbox_left) - abs(persistVar.x);
+			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(persistVar.x);
+			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
 			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
@@ -30,11 +30,11 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims,
 		if  !(persistVar.isBelow) {
 			stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
 		} // Changes to Jump State if there's input
-		else if userInput.jumpInput and !persistVar.isAbove {
+		else if inputHandler.jumpInput and !persistVar.isAbove {
 			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
 		}
 		// Changes to Dash State if there's input
-		if userInput.dashInput != 0 {
+		if inputHandler.dashInput != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
@@ -42,16 +42,25 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims,
 }
 
 /// Changes to move state if xInput
-function IdleState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function IdleState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle";
 	static num = STATEHIERARCHY.idle;
+	
+	static sEnter = function() {
+	}
 	
 	static updLogic = function() {
 		groundedUpdLogic();  // Update xInput
 	}
 	
-	static updAnim = function() {
-		sprite_index = idleState.activeAnims[faceDir(userInput.xInputDir)];
+	static getAnimEnter = function() {
+		return [activeAnims[faceDir(inputHandler.xInputDir)], undefined, undefined];
+	}
+	
+	// Idle does not exit when we jump so we can call updAnim constantly 
+	// or make a new inAirIdle state, setting anims doesn't cost much so I won't
+	static getAnimUpd = function() {
+		return [activeAnims[faceDir(inputHandler.xInputDir)], undefined, undefined];
 	}
 	
 	static checkWalk12 = function() {
@@ -81,7 +90,7 @@ function IdleState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 }
 
 /// Changes to IdleState if no xInput and xVel is 0
-function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Walk";
 	static num = STATEHIERARCHY.walk;
 	walkVel = _data[0];
@@ -100,17 +109,12 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 	idleAnims = [anims[2], anims[3]];
 	
 	static sEnter = function(_data = undefined) {
-		groundedSEnter();
-		entity.image_index = 0;  // Start at first walk frame
 		walkAccel = walkAccelDef;
+		xVel = persistVar.xVel;
 		convXToWalk();
 	}
-	
-	static sExit = function() {
-		entity.image_speed = 1; // Stop scaling based on horizontal speed
-	}
-	
-	static updLogic = function () {
+
+	static updLogic = function() {
 		groundedUpdLogic(); // Update xInput 
 		xVel = persistVar.xVel;
 		
@@ -124,28 +128,35 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 			else {
 				updXVel();
 			}
-			with entity {updX();}
 		}
 	}
 	
-	static updAnim = function() {
-			// Change animation depending on if we're pressing anything and the speed is above a certain threshold
-			if userInput.xInputDir == 0 and abs(xVel) < 1 {
-				activeAnims = idleAnims;
-			}
-			else {
-				activeAnims = walkAnims;
-			}
-			
-			// Change anim if we change direction
-			sprite_index = activeAnims[faceDir(userInput.xInputDir)];
-			// Scale anim speed with x speed
-			image_speed = 0.5 + 0.5 * (abs(xVel)/xVelMax);
-			
-			checkStuck();
-		}
+	static getAnimEnter = function() {
+		return [undefined, 0, undefined]; // sets image_index to 0
 	}
+	
+	// Change anim when our state first begins
+	static getAnimExit = function() {
+		return [undefined, undefined, 1]; // Stop scaling based on horizontal speed
+	}
+	
+	
+	static getAnimUpd = function() {
+		// Change animation depending on if we're pressing anything and the speed is above a certain threshold
+		if inputHandler.xInputDir == 0 and abs(persistVar.xVel) < 1 {
+			activeAnims = idleAnims;
+		}
+		else {
+			activeAnims = walkAnims;
+		}
 		
+		var _spriteIndex = activeAnims[faceDir(inputHandler.xInputDir)]
+		var _imageSpeed = 0.5 + 0.5 * (abs(persistVar.xVel)/xVelMax);
+		var _imageIndex = undefined;
+		
+		return [_spriteIndex, _imageIndex, _imageSpeed];
+	}
+
 	/// Go to idle state if no input and no velocity	
 	static checkIdle12 = function() {
 		if xInputDir == 0 and xVel == 0 {
@@ -172,7 +183,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 		
 		checkIdle12();
 	}
-
+	
 	/// @function		updAccel()
 	/// @description	If an entity starts changing direction or stops inputting one, increase walkAccel to the max and decrease it over the next few frames to its default value. 
 	///							If not, set walkAccel to the default value.
@@ -197,7 +208,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 			walkAccel = walkAccelDef;	
 		}
 	}
-
+	
 	/// @function	updVel()
 	/// @description	Manipulates a value, walkVel, maps it out onto a hill function, and then augments the entity's velocity to become that value
 	///		
@@ -229,7 +240,6 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 		persistVar.xVel += _nextXAccel;
 	}
 	
-	
 	/// @function	convXToWalk()
 	/// @description	Takes our xVel, and if it's within range finds it on our hill function, and makes walkVel equal to its x value.
 	static convXToWalk = function() {
@@ -239,8 +249,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 			walkVel = (is_nan(_convWalkVel))? 0 : _convWalkVel;
 		}
 	}
-	
-	
+		
 	/// @function	updXVel()
 	/// @description	Temporary function for decelerating above clamp.
 	///		
@@ -248,7 +257,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 	static updXVel = function() {
 		// Update xVel when above the cap
 		if abs(xVel) * decel <= xVelMax {
-			if userInput.xInputDir == sign(xVel) {
+			if inputHandler.xInputDir == sign(xVel) {
 				walkVel = walkVelMax * sign(xVel);
 				persistVar.xVel = xVelMax * sign(xVel);
 			}
@@ -266,7 +275,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 
 #region Useless State
 /*
-function GroundMotionState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function GroundMotionState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Ground Motion";
 	static num = 6;
 	static groundedUpdLogic = updLogic;

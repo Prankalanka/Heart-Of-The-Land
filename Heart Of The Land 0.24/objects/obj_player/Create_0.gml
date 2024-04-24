@@ -1,197 +1,3 @@
-#region User Input Handler Setup (Eventually should be its own object)
-userInput = {
-	xInputDir : 0,
-	checkWalk : function() {
-		xInputDir = 0;
-		
-		var _left = keyboard_check(vk_left) or keyboard_check(ord("A"));
-	    var _right = keyboard_check(vk_right) or keyboard_check(ord("D"));
-
-	     xInputDir = _right - _left;
-	},
-	
-	jumpInput : false, // For now only one variable, but might seperate into multiple vars for more control
-	spaceReleasedSinceJump : true,
-	jumpBufferMax : 14,
-	jumpBuffer : 0,
-	currJumpFrame : 0,
-	checkJump : function() {
-		jumpInput = false;
-			// Jump conditions can be temporary variables in the player data script, encapsulated in some way
-			// Too much boilerplate get rid of some vars, and rename the ones we already have if  it's not clear enough
-			// Only need to update them in here, will send signal to something else and that will check conditions
-			// We don't always need to check the conditions but we always need to check the inputs
-			// Coyote is not here since it isn't really to do with input, more context 
-		if (!keyboard_check(vk_space)) {
-				// (VERY IMPORTANT) Only set false when we have done a valid jump
-			spaceReleasedSinceJump = true;
-		}
-		
-		if keyboard_check_pressed(vk_space) {
-			jumpBuffer = jumpBufferMax;
-		} else if jumpBuffer > 0{
-			jumpBuffer -= 1;
-		}
-
-		// Counts up to 31 when holding space, resets only when space is released since we've succesfully jumped
-		// if we haven't done a valid jump since we've released space it doesn't increment
-		// meaning it won't increment if we're mid-jump, release space and then try to jump again, there's no air jump yet so jumping mid-air does nothing
-		if !spaceReleasedSinceJump and currJumpFrame < other.jumpState.framesToPeak + 1 {
-			currJumpFrame++;
-		} else if spaceReleasedSinceJump { 
-			currJumpFrame = 0;
-		}
-		
-		// Jump Input Conditions
-		if (jumpBuffer > 0) {
-			jumpInput = true;
-		}
-	},
-	
-	dashInput : 0, // Ranges from -1 to 1 
-	dashBuffer : [0, 0], // Input Handler
-	dashBufferMax : 18, // Input Handler
-	checkDash : function() {
-		dashInput = 0;
-		
-		if (keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A"))) // and cooldown
-	    {
-	        // Reset the other buffer so that we don't dash if we're quickly changing directions
-	        dashBuffer[1] = 0;
-	        // If we press the key again whilst its buffer is above 0 we call stateTransition and switch states 
-	        if dashBuffer[0] > 0 {
-				dashInput  = 1;
-	        }
-	        else {
-	            // For the first frame a directional key is pressed, make the dash buffer for the key equal to 10
-	            dashBuffer[0] = dashBufferMax;
-	        }
-	        // If we don't press it decrement the key's buffer each frame until we reach 0
-	    } else {
-	        dashBuffer[0] -= 1;
-	    }
-	    if (keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D"))) {
-	        dashBuffer[0] = 0;
-	        if dashBuffer[1] > 0 {
-	            dashInput = -1;
-	        }
-	        else {
-	            dashBuffer[1] = dashBufferMax;
-	        }
-	    } else {
-	        dashBuffer[1] -= 1;
-	    }
-	},
-	
-	swingInput : false,
-	swingObj : undefined,
-	checkSwing : function() {
-	    // If we're holding w and colliding with the swing object
-	    // (will change to more of a collision box with you going different directions depending on your direction and position)
-	    if (keyboard_check(vk_up) or keyboard_check(ord("W"))) and obj_player.place_meeting(obj_player.x, obj_player.y, obj_swing) {
-	         swingInput = true;
-	    }
-	},
-	/*  VERY IMPORTANT, RUN THIS IN THE FIRST FRAME OF SWINGING
-	    swingAngle = point_direction(swingObj.x, swingObj.y, x, y);
-	    x = swingObj.x + lengthdir_x(swingDistance, swingAngle);
-	    y = swingObj.y + lengthdir_y(swingDistance, swingAngle);
-	*/
-	
-	holdInput : false,
-	throwPos : [0,0],
-	holdHeld : false,
-	holdCancel : false,
-	checkThrow : function() {
-		holdInput = false;
-		
-		// Set hold input and held to true at first frame
-		if mouse_check_button_pressed(mb_right) {
-			holdInput = true;
-			holdHeld = true;
-		}
-		
-		// Keep held true and update throwPos  if we're holding
-		holdHeld = mouse_check_button(mb_right);
-		if holdHeld {throwPos = [mouse_x, mouse_y];}
-		
-		// Check if we're trying to cancel (make this put it into our inventory if it can)
-		holdCancel = mouse_check_button_pressed(mb_left);
-	},
-	
-	climbHeld : false,
-	wallSlideHeld : false,
-	upReleasedSinceClimb : true,
-	surface : undefined,
-	checkClimb : function() {
-		// Keep true if we're holding
-		climbHeld = (keyboard_check(ord("W")) or keyboard_check(vk_up))? true : false;
-		wallSlideHeld = (keyboard_check(ord("S")) or keyboard_check(vk_down))? true : false;
-		if keyboard_check_released(ord("W")) {
-			upReleasedSinceClimb = true;
-		}
-	},
-	
-	checkNothing : function() {
-	}, 
-	
-	/// Check every input in the inputFunctions array
-	checkInputs : function() {	
-		var _len = array_length(inputFunctions);
-		
-		for (var i = 0; i < _len; i++) {
-			inputFunctions[i]();
-		}
-	},
-};
-
-userInput.inputFunctions = [userInput.checkWalk, userInput.checkJump, userInput.checkDash, userInput.checkThrow, userInput.checkClimb];
-#endregion
-
-#region Context Setup (Only the context uses these)
-xVelArray = [];
-
-activestates = undefined;
-prioState = undefined;
-
-showRequests = true;
-showStates = false;
-#endregion
-
-#region Entity Data Setup (Stuff tied to the context that also needs to be used by states) 
-persistVar = { // Doesn't reset every frame and only hold these variables
-	colliderArray : [obj_platform],
-	isBelow : place_meeting(x, (y + 1), colliderArray),
-	isAbove : place_meeting(x, (y - 1), colliderArray),
-	
-	x,
-	y,
-	
-	xVel : 0,
-	yVel : 0,
-
-	dirFacing : 0,
-};
-
-tempVar = { // Resets every frame and calls functions 
-};
-
-	
-#endregion
-
-#region Health State Setup (Make a health region eventally)
-// Health state or smthn
-maxHp = 100;
-hp = maxHp;
-attack = 50;
-attackCd = true;
-
-#endregion
-
-#region Idle State Setup
-var _idleAnims =  [spr_idle_right, spr_idle_left];
-#endregion
-
 #region Walk State Setup
 var _walkAnims = [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left];
 
@@ -205,6 +11,19 @@ var _walkAccelDef = 1.4;
 var _walkAccelMax = 3.25;
 
 var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax];
+#endregion
+
+#region Health State Setup (Make a health region eventually)
+// Health state or smthn
+maxHp = 100;
+hp = maxHp;
+attack = 50;
+attackCd = true;
+
+#endregion
+
+#region Idle State Setup
+var _idleAnims =  [spr_idle_right, spr_idle_left];
 #endregion
 
 #region Jump / In Air State Setup
@@ -244,8 +63,12 @@ swingDistance = 100;
 // Climb
 var _slideDownVel = 6;
 var _slideDownerVel = 10;
+var 	_getClimbBox = function(_dirFacing) {
+	return [bbox_left + sprite_width / 10 * _dirFacing, bbox_top, bbox_right + sprite_width / 10 * _dirFacing, bbox_bottom];
+}
 
-var _climbData = [_slideDownVel, _slideDownerVel];
+
+var _climbData = [_slideDownVel, _slideDownerVel, _getClimbBox];
 #endregion
 
 #region Wall Jump Setup
@@ -263,6 +86,22 @@ var _yWJGrav = (2 * _yWJPeak) / sqr(_yWJFramesToPeak);
 var _wallJumpData = [_xWJInitVel, _xWJFramesToPeak, _xWJPeak, _xWJGrav, _yWJInitVel, _yWJFramesToPeak, _yWJPeak, _yWJGrav];
 #endregion
 
+#region Idle Combat Setup 
+var _checkSetHeld = function() {
+	if place_meeting(x, y, par_throwable) {
+		var _held = instance_nearest(x, y, par_throwable);
+					
+		// Done here so they're at the hold and held states at the same time
+		stateMachine.requestChange(holdState, 0, _held);
+		_held.stateMachine.requestChange(_held.heldState, 0, id);
+		_held.stateMachine.requestChange(_held.heldState, 1, id);
+		_held.stateMachine.requestChange(_held.heldState, 2, id);
+	}
+}
+
+var _idleCombatData = [_checkSetHeld];
+#endregion
+
 #region Camera Object Setup Eventually
 // Should be in camera object
 targetX = x - camera_get_view_width(view_camera[0]) / 2;
@@ -272,7 +111,6 @@ targetY = lerp(targetY, mouse_y, 0.4);
 
 camX = lerp(camera_get_view_x(view_camera[0]), targetX, 0.3);
 camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.3);
-
 #endregion
 
 #region Old Functions
@@ -469,58 +307,205 @@ function moveCamera() {
 }
 #endregion
 
-#region New Entity Functions (Used by multiple states, so more efficient to store in the context)
-/// @function	updGrav()
-/// @description	Augments a velocity by a given or default gravity.
-updGrav = function(_grav, axis, _clamp = 1000000) {
-	if axis == 0 {
-		// Only augment if the nextXVel is below the clamp
-		var _nextXVel = xVel - _grav;
-		if abs(_clamp) >  abs(_nextXVel) {
-			xVel = _nextXVel;
-		}
-	}
-	else {
-		// Only needs to be below the clamp if it's negative
-		var _nextYVel = yVel - _grav;
-		if abs(_clamp) >  abs(_nextYVel) or sign(_nextYVel) == -1 {
-			yVel = _nextYVel;
-		}
-	}
-}
+#region Input Handler Setup (Eventually should be its own object)
+inputHandler = {
+	xInputDir : 0,
+	checkWalk : function() {
+		xInputDir = 0;
+		
+		var _left = keyboard_check(vk_left) or keyboard_check(ord("A"));
+	    var _right = keyboard_check(vk_right) or keyboard_check(ord("D"));
 
-/// @function	checkSetSurface()
-/// @description	Looks for an instance in order of distance, touching our extended collision mask in whatever direction. If it has the "climbable" tag and we are facing it, set the value of inputHandle.surface and return true.
-checkSetSurface = function(_currentSurface = undefined) {
-	var _instList = ds_list_create();
+	     xInputDir = _right - _left;
+	},
 	
-	var _extBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
-	var _dirFacing = (dirFacing == 0)? 1 : -1;
-	var _listLength = collision_rectangle_list(_extBox[0] + sprite_width / 10 * _dirFacing, _extBox[1], _extBox[2] + sprite_width / 10 * _dirFacing, _extBox[3], all, false, true, _instList, true);
+	jumpInput : false, // For now only one variable, but might seperate into multiple vars for more control
+	spaceReleasedSinceJump : true,
+	jumpBufferMax : 14,
+	jumpBuffer : 0,
+	jumpFramesToPeak : _framesToPeak,
+	currJumpFrame : 0,
+	checkJump : function() {
+		jumpInput = false;
+			// Jump conditions can be temporary variables in the player data script, encapsulated in some way
+			// Too much boilerplate get rid of some vars, and rename the ones we already have if  it's not clear enough
+			// Only need to update them in here, will send signal to something else and that will check conditions
+			// We don't always need to check the conditions but we always need to check the inputs
+			// Coyote is not here since it isn't really to do with input, more context 
+		if (!keyboard_check(vk_space)) {
+				// (VERY IMPORTANT) Only set false when we have done a valid jump
+			spaceReleasedSinceJump = true;
+		}
+		
+		if keyboard_check_pressed(vk_space) {
+			jumpBuffer = jumpBufferMax;
+		} else if jumpBuffer > 0{
+			jumpBuffer -= 1;
+		}
+
+		// Counts up to 31 when holding space, resets only when space is released since we've succesfully jumped
+		// if we haven't done a valid jump since we've released space it doesn't increment
+		// meaning it won't increment if we're mid-jump, release space and then try to jump again, there's no air jump yet so jumping mid-air does nothing
+		if !spaceReleasedSinceJump and currJumpFrame < jumpFramesToPeak + 1 {
+			currJumpFrame++;
+		} else if spaceReleasedSinceJump { 
+			currJumpFrame = 0;
+		}
+		
+		// Jump Input Conditions
+		if (jumpBuffer > 0) {
+			jumpInput = true;
+		}
+	},
 	
+	dashInput : 0, // Ranges from -1 to 1 
+	dashBuffer : [0, 0], // Input Handler
+	dashBufferMax : 18, // Input Handler
+	checkDash : function() {
+		dashInput = 0;
+		
+		if (keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A"))) // and cooldown
+	    {
+	        // Reset the other buffer so that we don't dash if we're quickly changing directions
+	        dashBuffer[1] = 0;
+	        // If we press the key again whilst its buffer is above 0 we call stateTransition and switch states 
+	        if dashBuffer[0] > 0 {
+				dashInput  = 1;
+	        }
+	        else {
+	            // For the first frame a directional key is pressed, make the dash buffer for the key equal to 10
+	            dashBuffer[0] = dashBufferMax;
+	        }
+	        // If we don't press it decrement the key's buffer each frame until we reach 0
+	    } else {
+	        dashBuffer[0] -= 1;
+	    }
+	    if (keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D"))) {
+	        dashBuffer[0] = 0;
+	        if dashBuffer[1] > 0 {
+	            dashInput = -1;
+	        }
+	        else {
+	            dashBuffer[1] = dashBufferMax;
+	        }
+	    } else {
+	        dashBuffer[1] -= 1;
+	    }
+	},
 	
-	if _listLength != 0 {
-	   for (var i = 0; i < _listLength; i++) {
-		   if _instList[|i] != _currentSurface and asset_has_tags(_instList[|i].object_index, "climbable") {
-			   // Check if our x value is closer to the left or right bbox boundary
-				var _rightDiff = abs( _instList[|i].bbox_right) - abs(x);
-				var _leftDiff = abs(_instList[|i].bbox_left) - abs(x);
-				var _wallDir = (abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
-			   
-			   show_debug_message(_wallDir);
-			   
-			   // Only attach if we're running into the wall
-			   if userInput.xInputDir == _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
-				   userInput.surface = _instList[|i];
-				   ds_list_destroy(_instList);
-				   return true; // breaks out of function, not loop
-			   }
-		   }
-	   }
+	swingInput : false,
+	swingObj : undefined,
+	checkSwing : function() {
+	    // If we're holding w and colliding with the swing object
+	    // (will change to more of a collision box with you going different directions depending on your direction and position)
+	    if (keyboard_check(vk_up) or keyboard_check(ord("W"))) and obj_player.place_meeting(obj_player.x, obj_player.y, obj_swing) {
+	         swingInput = true;
+	    }
+	},
+	/*  VERY IMPORTANT, RUN THIS IN THE FIRST FRAME OF SWINGING
+	    swingAngle = point_direction(swingObj.x, swingObj.y, x, y);
+	    x = swingObj.x + lengthdir_x(swingDistance, swingAngle);
+	    y = swingObj.y + lengthdir_y(swingDistance, swingAngle);
+	*/
+	
+	holdInput : false,
+	throwPos : [0,0],
+	holdHeld : false,
+	holdCancel : false,
+	checkThrow : function() {
+		holdInput = false;
+		
+		// Set hold input and held to true at first frame
+		if mouse_check_button_pressed(mb_right) {
+			holdInput = true;
+			holdHeld = true;
+		}
+		
+		// Keep held true and update throwPos  if we're holding
+		holdHeld = mouse_check_button(mb_right);
+		if holdHeld {throwPos = [mouse_x, mouse_y];}
+		
+		// Check if we're trying to cancel (make this put it into our inventory if it can)
+		holdCancel = mouse_check_button_pressed(mb_left);
+	},
+	
+	climbHeld : false,
+	wallSlideHeld : false,
+	upReleasedSinceClimb : true,
+	surface : undefined,
+	checkClimb : function() {
+		// Keep true if we're holding
+		climbHeld = (keyboard_check(ord("W")) or keyboard_check(vk_up))? true : false;
+		wallSlideHeld = (keyboard_check(ord("S")) or keyboard_check(vk_down))? true : false;
+		if keyboard_check_released(ord("W")) {
+			upReleasedSinceClimb = true;
+		}
+	},
+	
+	checkNothing : function() {
+	}, 
+	
+	/// Check every input in the inputFunctions array
+	checkUserInputs : function() {	
+		var _len = array_length(inputFunctions);
+		
+		for (var i = 0; i < _len; i++) {
+			inputFunctions[i]();
+		}
+	},
+	
+	checkContextInputs : function() {
+		var _inAnyRegion = array_any(other.states[STATEHIERARCHY.climb].inRegion, function(_val, _ind)
+		{
+		    return _val == true
+		});
+		if climbHeld and !_inAnyRegion {
+			var _dirFacing = (other.persistVar.indexFacing == 0)? 1 : -1;
+			var _extBox =  [other.bbox_left + other.sprite_width / 10 * _dirFacing, other.bbox_top, other.bbox_right + other.sprite_width / 10 * _dirFacing, other.bbox_bottom];
+			checkSetSurface(_extBox);
+		}
 	}
-	ds_list_destroy(_instList);
-	return false;
-} 
+};
+
+inputHandler.inputFunctions = [inputHandler.checkWalk, inputHandler.checkJump, inputHandler.checkDash, inputHandler.checkThrow, inputHandler.checkClimb];
+#endregion
+
+#region Context Setup (Only the context uses these)
+xVelArray = [];
+
+activeStates = undefined;
+prioState = undefined;
+
+showRequests = true;
+showStates = false;
+#endregion
+
+#region Entity Data Setup (Stuff tied to the context that also needs to be used by states) 
+persistVar = { // Doesn't reset every frame and only hold these variables
+	colliderArray : [obj_platform],
+	isBelow : false,
+	isAbove : false,
+	
+	x,
+	y,
+	
+	xVelMax : ((_fakeMaxSpeed * power(25, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(25, _walkVarB))),
+	xVel : 0,
+	yVel : 0,
+
+	indexFacing : 0,
+};
+
+persistVar.isBelow = place_meeting(x, (y +1), persistVar.colliderArray);
+persistVar.isAbove = place_meeting(x, (y - 1), persistVar.colliderArray);
+
+tempVar = { // Resets every frame and calls functions 
+	
+};
+	
+#endregion
+
+#region New Entity Functions
 
 #endregion
 
@@ -531,50 +516,41 @@ states = [];
 
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, they can alter which states are active, leading to major behavioural changes.
-states[STATEHIERARCHY.idle] = new IdleState(persistVar, tempVar, stateMachine, userInput, _idleAnims);
-states[STATEHIERARCHY.walk] = new WalkState(persistVar, tempVar, stateMachine, userInput, _walkAnims, _walkData);
-states[STATEHIERARCHY.inAir] =  new InAirState(persistVar, tempVar, stateMachine, userInput, _inAirAnims, _inAirData);
-states[STATEHIERARCHY.jump] = new JumpState(persistVar, tempVar, stateMachine, userInput, _jumpAnims, _jumpData); 
-states[STATEHIERARCHY.dash] = new DashState(persistVar, tempVar, stateMachine, userInput, _dashAnims); 
-states[STATEHIERARCHY.projectile] = new ProjectileState(persistVar, tempVar, stateMachine, userInput, _idleAnims);
-states[STATEHIERARCHY.idleCombat] = new IdleCombatState(persistVar, tempVar, stateMachine, userInput, _idleAnims);
-states[STATEHIERARCHY.hold] = new HoldState(persistVar, tempVar, stateMachine, userInput, _idleAnims);
-states[STATEHIERARCHY.climb] = new ClimbState(persistVar, tempVar, stateMachine, userInput, _idleAnims, _climbData);
-states[STATEHIERARCHY.wallJump] = new WallJumpState(persistVar, tempVar, stateMachine, userInput, _idleAnims, _wallJumpData),
+states[STATEHIERARCHY.idle] = new IdleState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
+states[STATEHIERARCHY.walk] = new WalkState(persistVar, tempVar, stateMachine, inputHandler, _walkAnims, _walkData);
+states[STATEHIERARCHY.inAir] =  new InAirState(persistVar, tempVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
+states[STATEHIERARCHY.jump] = new JumpState(persistVar, tempVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
+states[STATEHIERARCHY.dash] = new DashState(persistVar, tempVar, stateMachine, inputHandler, _dashAnims); 
+states[STATEHIERARCHY.projectile] = new ProjectileState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
+states[STATEHIERARCHY.idleCombat] = new IdleCombatState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
+states[STATEHIERARCHY.hold] = new HoldState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
+states[STATEHIERARCHY.climb] = new ClimbState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _climbData);
+states[STATEHIERARCHY.wallJump] = new WallJumpState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
 
 #region State Functions
 /// In its own function so states don't have to be defined when we create the stateMachine.
-/// Sets activestates to arguments, enters and regions the activestates, and sets prioState
+/// Sets activeStates to arguments, enters and regions the activeStates, and sets prioState
 initStates = function(_startingStates)
 {
-	activestates = _startingStates;
+	activeStates = _startingStates;
 		
 	// Enter aand region all current states
-	for (var i = 0; i < array_length(activestates); i++) {
-		activestates[i].inRegion[i] = true;
-		activestates[i].sEnter();
+	for (var i = 0; i < array_length(activeStates); i++) {
+		activeStates[i].inRegion[i] = true;
+		activeStates[i].sEnter();
 	}
-		
+	
 	// Figure out which state in the hierarchy we should have the animation of
-	prioState = getPrioState([activestates.num);
+	prioState = getPrioState([activeStates[0].num, activeStates[1].num, activeStates[2].num]);
 }
 
 /// Checks what changes the current states are requesting, changes the requesting states and possibly the priority state depending on hierarchy. 
-/// Does the updLogic for each state, and finally does the updAnim function for the priority state.
-updLogic = function() {
-	// Resets so we can tell which ones are unique again
-	for (var i = 0; i < array_length(activestates); i++) {
-		activestates[i].checked = false;
-	}
-		
-	// Does the doCheck function for each unique state once
-	// If we do it per state, they might not have the same context to check from
-	for (var i = 0; i < array_length(activestates); i++) {
-		if !activestates[i].checked {
-			activestates[i].checkChanges();
-			activestates[i].checked = true;
-		}
-	}
+/// Does the updLogic for each state, and finally does the getAnimUpd function for the priority state.
+execPipeLine = function() {
+	inputHandler.checkUserInputs();
+	inputHandler.checkContextInputs();
+	
+	checkChanges();
 		
 	if showRequests {
 		stateMachine.showRequests();
@@ -585,24 +561,54 @@ updLogic = function() {
 	if showStates {
 		showStates();
 	}
-		 
+	
+	updLogic();
+	
+	updPos();
+	
+	// Update animation once all the context has been decided
+	var _animData = prioState.getAnimUpd();
+	if _animData != undefined {
+		updAnim(_animData[0], _animData[1], _animData[2]);
+	}
+}
+
+updLogic = function() {
 	// Resets so we can tell which ones are unique again
-	for (var i = 0; i < array_length(activestates); i++) {
-		activestates[i].updated = false;
+	for (var i = 0; i < array_length(activeStates); i++) {
+		activeStates[i].updated = false;
 	}
 		
 	// Does the update logic for each unique state once
-	for (var i = 0; i < array_length(activestates); i++) {
-		if !activestates[i].updated {
-			activestates[i].updLogic();
-			activestates[i].updated = true;
+	for (var i = 0; i < array_length(activeStates); i++) {
+		if !activeStates[i].updated {
+			activeStates[i].updLogic();
+			activeStates[i].updated = true;
 		}
 	}
-		
-	// Update animation once all the context has been decided
-	prioState.updAnim();
 }
-	
+
+updPos = function() {
+	// Update Position (states only control velocity)
+	if persistVar.xVel != 0 {updX();}
+	if persistVar.yVel != 0 {updY();}
+}
+
+updAnim = function(_spriteIndex = undefined, _imageIndex = undefined, _imageSpeed = undefined) {
+	// GONNA BE FUNC OF ENTITY
+	if _spriteIndex != undefined {
+		sprite_index = _spriteIndex; // Face correctly
+	}
+	if _imageIndex != undefined {
+		image_index = _imageIndex;
+	}
+	if _imageSpeed != undefined {
+		// Scale anim speed with x speed
+		image_speed = _imageSpeed;
+	}
+	checkStuck();
+}
+
 /// If stateChanged is true, for every non-empty region of stateChanges, check which requested state is highest in the hierarchy.
 /// Possibly call the enter and exit functions of the requested and requesting states respectively, whilst always changing the inRegion values.
 /// After looping through all regions, set the prioState and reset the stateChanged, stateChanges, and changeData variables.
@@ -615,28 +621,33 @@ changeStates = function() {
 				var _prioState = getPrioState(_stateChanges[i]);
 					
 				// If current state isn't a duplistate do the exit function for that state
-				if !isDuplistate(activestates[i]) {
-					activestates[i].sExit();	
+				if !isDuplistate(activeStates[i]) {
+					activeStates[i].sExit();	
 				}
 					
 				// Set current and next state inRegion values
-				activestates[i].inRegion[i] = false;
-				activestates[i] = _prioState;
-				activestates[i].inRegion[i] = true;
+				activeStates[i].inRegion[i] = false;
+				activeStates[i] = _prioState;
+				activeStates[i].inRegion[i] = true;
 					
 				// If new state isn't a duplistate do the enter function for that state
 				var _changeData = stateMachine.changeData;
-				if !isDuplistate(activestates[i]) {
+				if !isDuplistate(activeStates[i]) {
 					if array_length(_changeData) != 0 and _changeData[_prioState.num] != undefined {
-						activestates[i].sEnter(_changeData[_prioState.num]);
+						activeStates[i].sEnter(_changeData[_prioState.num]);
 					}
 					else {
-						activestates[i].sEnter();
+						activeStates[i].sEnter();
+					}
+					var _animData = activeStates[i].getAnimEnter();
+					if _animData != undefined {
+						updAnim(_animData[0], _animData[1], _animData[2]);
 					}
 				}
 			}
 		}
-		prioState = getPrioState([activestates[0].num, activestates[1].num, activestates[2].num]);
+		
+		prioState = getPrioState([activeStates[0].num, activeStates[1].num, activeStates[2].num]);
 			
 		// Reset
 		stateMachine.stateChanged = false;
@@ -644,12 +655,28 @@ changeStates = function() {
 		stateMachine.changeData = [];
 	}
 }
+	
+checkChanges = function() {
+	// Resets so we can tell which ones are unique again
+	for (var i = 0; i < array_length(activeStates); i++) {
+		activeStates[i].checked = false;
+	}
+		
+	// Does the doCheck function for each unique state once
+	// If we do it per state, they might not have the same context to check from
+	for (var i = 0; i < array_length(activeStates); i++) {
+		if !activeStates[i].checked {
+			activeStates[i].checkChanges();
+			activeStates[i].checked = true;
+		}
+	}
+}
 
-/// Check if the input state, is found multiple times in the activestates array
+/// Check if the input state, is found multiple times in the activeStates array
 isDuplistate = function(_state) {
 	var _count = 0;
-	for (var i = 0; i < array_length(activestates); i++) {
-		if activestates[i] == _state{
+	for (var i = 0; i < array_length(activeStates); i++) {
+		if activeStates[i] == _state{
 			_count++;
 			if _count >= 2 {
 				return true;
@@ -659,31 +686,31 @@ isDuplistate = function(_state) {
 	return false;
 }
 	
-/// Return which state of activestates is highest in the hierarchy 
+/// Return which state of activeStates is highest in the hierarchy 
 getPrioState = function(_nums) {
 	// Figure out which state in the hierarchy we should have the animation of
-	return states[script_execute_ext(max, _nums);];
+	return states[script_execute_ext(max, _nums)];
 }
 
 /// Display the names of each currentState in the console
 showStates = function() {
 	var _currentNames = [undefined, undefined, undefined];
-	for (var i = 0; i < array_length(activestates); i++) {
-		_currentNames[i] = activestates[i].name;
+	for (var i = 0; i < array_length(activeStates); i++) {
+		_currentNames[i] = activeStates[i].name;
 	}
 	show_debug_message(_currentNames);
 }
 #endregion
 
 // INITIALISE THE STATE MACHINE
-var _startingStates = [idleCombatState, idleState, idleState];
+var _startingStates = [states[STATEHIERARCHY.idleCombat], states[STATEHIERARCHY.idle], states[STATEHIERARCHY.idle]];
 initStates(_startingStates);
 
 // walkVel testing
-for (var i = 0; i <= 8.94; i += 0.01) {
-	var _convWalkVel = power((-(power(walkState.walkVarA, -walkState.walkVarB) * (-walkState.fakeMaxSpeed + i))/i), (-1/walkState.walkVarB));
-	array_push(xVelArray, [i, _convWalkVel]);
-}
+//for (var i = 0; i <= 8.94; i += 0.01) {
+//	var _convWalkVel = power((-(power(walkState.walkVarA, -walkState.walkVarB) * (-walkState.fakeMaxSpeed + i))/i), (-1/walkState.walkVarB));
+//	array_push(xVelArray, [i, _convWalkVel]);
+//}
 #endregion
 
 // NEXT STEPS
@@ -713,9 +740,12 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // Wall jump needs to know which dir to jump in YAAAAAAAAAAAAAAAAAAAAa
 // Weird walk bug, where you jitter, it was an old one who's fix i deleted YAAAAAAAAAAAAAAAAAAAAAAa
 // THE ULTIMATE BUG, ONE THAT IS NOT MY OWN: SIMULTANEOUS KEY PRESSES OF SPACE, THE RIGHT ARROW KEY, AND ANOTHER KEY MEANS SPACE WILL NOT BE RECOGNISED
-// WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME
+// WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME YAAAAAAAAAAAAAAAAAAAA
+// WE CAN'T GO DO THE WHOLE PIPELINE OF ONE ENTITY THEN MOVE ONTO ANOTHER ENTITY, WE NEED TO DO ONE STAGE OF EVERY ENTITY, THEN ANOTHER STAGE OF EVERY ENTITY
+// DO ANIM STUFF YAAAAAAAAAAAAAAAAAA
+// Put the vars of the inputHandler that aren't functions into a 2d array of states and their related vars
 
 // CLEAN UP
 // In the state machine we have a for loop that we use a lot to determine our state hierarchy, turn it into a function YAAAaaa
 // WE ARE MOVING STATE SPECIFIC FUNCTIONS AND VARIABLES TO THE STATE YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-// BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, input the non-conditional variables, then decide whether or
+// BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, get the user input, then based on that user input take in contextInput that we might need

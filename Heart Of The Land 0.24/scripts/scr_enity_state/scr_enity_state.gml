@@ -1,13 +1,12 @@
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, it can alter which states are active, leading to major behavioural changes.
-function EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
-	persistVar = _persistVar; // Contains variables specific to the entity, that states can modify
-	tempVar = _tempVar; // Contains a static amount of variables specific to the entity, that reset each frame 
+function EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+	persistVar = _persistVar; // Contains variables specific to the entity that states can modify
+	tempVar = _tempVar; // Contains variables specific to the entity that reset each frame and
 	stateMachine = _stateMachine;
-	userInput = _userInput;
+	inputHandler = _inputHandler;
 	anims = _anims; // All anims we can switch to within the state
-	activeAnims = anims; // Current anims, that we switch between based on dirFacing
-	stateInput = {}; // Contains input specific to the state
+	activeAnims = anims; // Current anims, that we switch between based on indexFacing
 	inRegion = [false, false, false]; // Which region(s) the state is in
 	// Bools so we don't run duplistate updLogic or checkChanges functions multiple times
 	updated = false; 
@@ -27,11 +26,26 @@ function EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _
 	static updLogic = function() {
 	
 	}
-
+	
+	// Change anim when our state first begins
+	static getAnimEnter = function() {
+	}
+	
+	// Change anim when our state first begins
+	static getAnimExit = function() {
+		return activeAnims[faceDir(inputHandler.xInputDir)];
+	}
+	
 	/// All logic for updating a state's animations, normally including a faceDir and checkStuck call. Called every frame
-	static updAnim = function() {
+	static getAnimUpd = function() {
 		
 	}
+	
+	/// Function that is transferred to the entity, detailing how it should handle the temp vars the state outputs
+	static fetchTempVar = function() {
+		
+	}
+	
 	
 	/// A non-static function, meaning it can vary from object to object, containing the logic for checking all possible changes a state can make
 	checkChanges = function() {

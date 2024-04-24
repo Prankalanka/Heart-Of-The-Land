@@ -1,10 +1,11 @@
-function CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 }
 
-function IdleCombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function IdleCombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
 	static num = STATEHIERARCHY.idleCombat;
+	checkSetHeld = _data[0]; // Hopefully bound to entity
 	
 	static updLogic = function() {
 	}
@@ -14,24 +15,14 @@ function IdleCombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anim
 	}
 	
 	static checkHold = function() {
-		if userInput.holdInput {
+		if inputHandler.holdInput {
 			// Check if there's any near throwables (when inventory implemented check that first)
-			with entity {
-				if place_meeting(x, y, par_throwable) {
-					var _held = instance_nearest(x, y, par_throwable);
-					
-					// Done here so they're at the hold and held states at the same time
-					stateMachine.requestChange(holdState, 0, _held);
-					_held.stateMachine.requestChange(_held.heldState, 0, id);
-					_held.stateMachine.requestChange(_held.heldState, 1, id);
-					_held.stateMachine.requestChange(_held.heldState, 2, id);
-				}
-			}
+			checkSetHeld();
 		}
 	}
 }
 
-function HoldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _data = undefined) constructor {
+function HoldState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Hold";
 	static num = STATEHIERARCHY.hold;
 	
@@ -56,10 +47,7 @@ function HoldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 	}
 	
 	static updLogic = function() {
-		if entity == plyr { // Player always wants to aim projectile cuz we wanna draw it or 
-			aimProjectilePlyr(); 
-		}
-		
+		aimProjectilePlyr();
 	}
 	
 	checkChanges = function() {
@@ -68,23 +56,22 @@ function HoldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 	}
 	
 	static checkRelease = function() {
-		if !userInput.holdHeld {
-			if entity != plyr {
-				aimProjectilePos();
-			}
+		if !inputHandler.holdHeld {
+			aimProjectilePos();
+			
 			throwProjectile(); // Changes held's state
-			stateMachine.requestChange(entity.idleCombatState, 0);
+			stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
 		}
 	}
 	
 	static checkCancel = function() {
-		if userInput.holdCancel {
+		if inputHandler.holdCancel {
 			// Put in inventory once we implement it
-			entity.stateMachine.requestChange(entity.idleCombatState, 0);
+			stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
 			
-			held.stateMachine.requestChange(held.idleCombatState, 0);
-			held.stateMachine.requestChange(held.idleState, 1);
-			held.stateMachine.requestChange(held.idleState, 2);
+			held.stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
+			held.stateMachine.requestChange(STATEHIERARCHY.idle, 1);
+			held.stateMachine.requestChange(STATEHIERARCHY.idle, 2);
 		}
 	}
 	
@@ -210,7 +197,7 @@ function HoldState(_persistVar, _tempVar, _stateMachine, _userInput, _anims, _da
 	static aimProjectilePos = function () {
 		areAxesOpposite = 1;
 		// WE'RE USING RADIANS		
-		var _targetPos = userInput.throwPos;
+		var _targetPos = inputHandler.throwPos;
 		var _sqrX = sqr(held.x - _targetPos[0]);
 		var _sqrY = sqr(held.y - _targetPos[1]);
 		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;

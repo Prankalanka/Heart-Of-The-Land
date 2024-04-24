@@ -20,32 +20,31 @@ enum STATEHIERARCHY {
 	
 }
 
-stateNameArray = [
-"Idle Combat",
-"Idle",
-"Walk",
-"Dash",
-	
-// Region 2 States
-"InAir",
-"Climb",
-"Jump",
-"Wall Jump",
-	
-// Multi-Region States
-"Projectile",
-	
-// Region 3 States
-"Hold",
-"Held",
-];
-
 
 /// Stores state changes and their data
 function EntityStateMachine() constructor {
 	stateChanges = [[], [], []]; // An array per region
 	stateChanged = false;
 	changeData = [];
+	stateNameArray = [
+	"Idle Combat",
+	"Idle",
+	"Walk",
+	"Dash",
+	
+	// Region 2 States
+	"InAir",
+	"Climb",
+	"Jump",
+	"Wall Jump",
+	
+	// Multi-Region States
+	"Projectile",
+	
+	// Region 3 States
+	"Hold",
+	"Held",
+	];
 
 	/// Sets stateChanged to true, puts a requested state in the stateChanges 2D array, based on region, and contains any data in the changeData array
 	static requestChange = function(_newStateNum, _region, _data = undefined)

@@ -3,22 +3,12 @@ checkHp(); // player health state
 
 moveCamera(); // camera object
 
-userInput.checkInputs();
-
-// var _requestingData = stateMachine.requestData
-
-stateMachine.updLogic();
+execPipeLine();
 
 // Idle combat state
 if mouse_check_button(mb_left)  and attackCd
 {
 	attackExec(); // function belonging to attack combat state
-}
-
-// projectile testing T-T
-if keyboard_check_pressed(ord("Z")) {
-	holdState.weight += 0.05;
-	
 }
 
 
@@ -27,13 +17,13 @@ if  keyboard_check_pressed(ord("V")) {
 	show_debug_message(xVelArray);
 }
 show_debug_message([
-xVel,
-walkState.walkVel,
-walkState.walkAccel
+persistVar.xVel,
+states[STATEHIERARCHY.walk].walkVel,
+states[STATEHIERARCHY.walk].walkAccel
 ]);
 
 show_debug_message([
-yVel
+persistVar.yVel
 ]);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
@@ -51,4 +41,4 @@ yVel
 //show_debug_message(yDir);
 //show_debug_message(magnitude);
 //show_debug_message(state);
-//show_debug_message(userInput.climbHeld);
+//show_debug_message(inputHandler.climbHeld);
