@@ -243,7 +243,6 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 	/// @function	convXToWalk()
 	/// @description	Takes our xVel, and if it's within range finds it on our hill function, and makes walkVel equal to its x value.
 	static convXToWalk = function() {
-		// Assuming a and n are positive
 		if abs(xVel) <= xVelMax {
 			var _convWalkVel = power((-(power(walkVarA, -walkVarB) * (-fakeMaxSpeed + abs(xVel)))/abs(xVel)), (-1/walkVarB)) * sign(xVel);
 			walkVel = (is_nan(_convWalkVel))? 0 : _convWalkVel;

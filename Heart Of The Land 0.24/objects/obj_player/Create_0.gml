@@ -307,7 +307,7 @@ function moveCamera() {
 }
 #endregion
 
-#region Input Handler Setup (Eventually should be its own object)
+#region Input Handler Setup ( Maybe eventually should be its own object or constructor)
 inputHandler = {
 	xInputDir : 0,
 	checkWalk : function() {
@@ -391,6 +391,8 @@ inputHandler = {
 	    } else {
 	        dashBuffer[1] -= 1;
 	    }
+		
+		if  keyboard_check_pressed(vk_shift) 
 	},
 	
 	swingInput : false,
@@ -480,7 +482,7 @@ showRequests = true;
 showStates = false;
 #endregion
 
-#region Entity Data Setup (Stuff tied to the context that also needs to be used by states) 
+#region Entity Data Setup (Stuff tied to the context that also needs to be altered by states) 
 persistVar = { // Doesn't reset every frame and only hold these variables
 	colliderArray : [obj_platform],
 	isBelow : false,
@@ -706,11 +708,11 @@ showStates = function() {
 var _startingStates = [states[STATEHIERARCHY.idleCombat], states[STATEHIERARCHY.idle], states[STATEHIERARCHY.idle]];
 initStates(_startingStates);
 
-// walkVel testing
-//for (var i = 0; i <= 8.94; i += 0.01) {
-//	var _convWalkVel = power((-(power(walkState.walkVarA, -walkState.walkVarB) * (-walkState.fakeMaxSpeed + i))/i), (-1/walkState.walkVarB));
-//	array_push(xVelArray, [i, _convWalkVel]);
-//}
+ // walkVel testing
+for (var i = 0; i <= 8.94; i += 0.01) {
+	var _convWalkVel = power((-(power(states[STATEHIERARCHY.walk].walkVarA, -states[STATEHIERARCHY.walk].walkVarB) * (-states[STATEHIERARCHY.walk].fakeMaxSpeed + i))/i), (-1/states[STATEHIERARCHY.walk].walkVarB));
+	array_push(xVelArray, [i, _convWalkVel]);
+}
 #endregion
 
 // NEXT STEPS
