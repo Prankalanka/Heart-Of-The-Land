@@ -319,7 +319,6 @@ function moveCamera() {
 }
 #endregion
 
-
 #region Context Setup (Only the context uses these)
 xVelArray = [];
 
@@ -502,6 +501,7 @@ persistVar = {
 	x,
 	y,
 	
+	xVelMax : ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax),
 	xVel : 0,
 	yVel : 0,
 
@@ -521,7 +521,7 @@ tempVar = { // GET RID OF
 
 #endregion
 
-#region State Machine and State Creation and Initialisation
+#region State Machine, State Creation and Initialisation
 stateMachine = new EntityStateMachine();
 
 states = [];

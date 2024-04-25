@@ -126,10 +126,9 @@ function DashState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			if (abs(_rightDiff) > abs(_leftDiff) {
-				if abs(_rightDiff >
-			}
-			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
+			//if (abs(_rightDiff) > abs(_leftDiff) {
+			//	if abs(_rightDiff > 
+			//}
 		}
 	}
 		
@@ -539,7 +538,6 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 		// Set the enity's x to the edge of the surface's x
 		var _surfaceBoundary = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
 		
-		
 		// So that we don't conserve our previous speed, and we fall
 		persistVar.xVel = _surfaceBoundary - persistVar.x;
 		atSurfaceBoundary = false;
@@ -554,6 +552,8 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 			persistVar.xVel = 0;
 		}
 		else {
+			var _surfaceBoundary = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
+			show_debug_message([persistVar.x, _surfaceBoundary, persistVar.xVel]);
 			atSurfaceBoundary = true; 
 		}
 		
