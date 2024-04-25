@@ -73,7 +73,7 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 	
 	static checkDash2 = function() {
 		// Changes to Dash State if there's input
-		if inputHandler.dashInput != 0 {
+		if inputHandler.dashInputDir != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}

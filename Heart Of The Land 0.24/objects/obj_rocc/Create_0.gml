@@ -2,7 +2,6 @@ inputHandler =  {
 	projectileInput : false,
 	holdInput : false,
 }
-autonomous = false;
 showRequests = false;
 projGrav = 9.8;
 

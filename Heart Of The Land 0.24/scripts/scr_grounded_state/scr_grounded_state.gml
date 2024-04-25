@@ -10,7 +10,7 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 	/// Check region 1 state changes
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
-		if inputHandler.dashInput != 0 {
+		if inputHandler.dashInputDir != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
 		}
 		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined {
@@ -34,7 +34,7 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
 		}
 		// Changes to Dash State if there's input
-		if inputHandler.dashInput != 0 {
+		if inputHandler.dashInputDir != 0 {
 			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
@@ -101,7 +101,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 	decel = _data[5];
 	walkAccelDef = _data[6];
 	walkAccelMax = _data[7];
-	walkVelMax = 25;
+	walkVelMax = _data[8];
 	xVelMax =  ((fakeMaxSpeed * power(walkVelMax, walkVarB)) / (power(walkVarA, walkVarB) + power(walkVelMax, walkVarB))) * sign(walkVelMax);
 	xVel = undefined;
 	walkInputDir = 0;
@@ -258,15 +258,18 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 		if abs(xVel) * decel <= xVelMax {
 			if inputHandler.xInputDir == sign(xVel) {
 				walkVel = walkVelMax * sign(xVel);
-				persistVar.xVel = xVelMax * sign(xVel);
+				xVel = xVelMax * sign(xVel);
+				persistVar.xVel = xVel;
 			}
 			else {
-				persistVar.xVel = xVel * decel;
+				xVel = xVel * decel;
+				persistVar.xVel = xVel;
 				convXToWalk();
 			}
 		}
 		else {
-			persistVar.xVel = xVel * decel;
+			xVel = xVel * decel;
+			persistVar.xVel = xVel;
 		}
 	}
 }

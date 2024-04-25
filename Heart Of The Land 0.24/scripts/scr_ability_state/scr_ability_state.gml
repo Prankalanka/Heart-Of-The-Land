@@ -114,7 +114,7 @@ function DashState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 	}
 	
 	static checkWalk1 = function() {
-		if dashFrame == 15 and abs(persistVar.xVel) >= persistVar.xVelMax {
+		if dashFrame == 15 and abs(persistVar.xVel) >= inputHandler.xVelMax {
 			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
 		}
 	}
@@ -126,6 +126,9 @@ function DashState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
+			if (abs(_rightDiff) > abs(_leftDiff) {
+				if abs(_rightDiff >
+			}
 			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
 		}
 	}
@@ -520,7 +523,7 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 	slideDownVel = _data[0];
 	slideDownerVel = _data[1];
 	getClimbBox = _data[2]; // Maybe still bound to entity, if not turn into m
-
+	atSurfaceBoundary = false;
 
 	static sEnter = function(_data) {	
 		// So that we know what side to go on
@@ -534,21 +537,31 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 		inputHandler.surface = undefined; // Avoid glitches 
 		
 		// Set the enity's x to the edge of the surface's x
-		persistVar.x = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
+		var _surfaceBoundary = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
+		
 		
 		// So that we don't conserve our previous speed, and we fall
-		persistVar.xVel = 0;
-		persistVar.yVel = 0;
+		persistVar.xVel = _surfaceBoundary - persistVar.x;
+		atSurfaceBoundary = false;
 		
-		inputHandler.upReleasedSinceClimb = false;
+		persistVar.yVel = 0;
 	}
 	
 	static updLogic = function() {
+		
+		// Only move based on xVel once
+		if atSurfaceBoundary {
+			persistVar.xVel = 0;
+		}
+		else {
+			atSurfaceBoundary = true; 
+		}
+		
 		if inputHandler.wallSlideHeld {
 			persistVar.yVel = slideDownerVel;
 		}
 		else {
-			persistVar.yVel = slideDownVel; // Update yVel with a 7th of the gravity
+			persistVar.yVel = slideDownVel; 
 		}
 	}
 	
@@ -556,6 +569,13 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 		if inputHandler.jumpInput {
 			stateMachine.requestChange(STATEHIERARCHY.wallJump, 1, [wallDir]);
 			stateMachine.requestChange(STATEHIERARCHY.wallJump, 2);
+		}
+	}
+	
+	static checkDash12 = function() {
+		if inputHandler.dashInputDir != 0 {
+			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
+			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
 		}
 	}
 	
@@ -582,6 +602,7 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 	
 	checkChanges = function() {
 		checkWallJump12();
+		checkDash12();
 		checkRelease12();
 		checkRange12();
 	}
@@ -592,7 +613,12 @@ function ClimbState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 		inputHandler.surface = undefined; // Avoid glitches 
 		
 		// Set the enity's x to the edge of the surface's x
-		persistVar.x = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
+		var _surfaceBoundary = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
+		
+		
+		// So that we don't conserve our previous speed, and we fall
+		persistVar.xVel = _surfaceBoundary - persistVar.x;
+		atSurfaceBoundary = false;
 	}
 	
 }
@@ -620,13 +646,6 @@ function WallJumpState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 		WJFrame = 0;
 	}
 	
-	// Follow a parabola on the x axis as well as the y axis 
-	// Allow the player to move but a reduced amount
-	
-	// How?
-	// Lasts until the forces on our player are gone
-	// If necessary modifies the parameters of the entity
-	// Runs its own manipulation of velocity then runs the normal input manipulation
 	static updLogic = function() {
 		WJFrame++; // Increment the frame we're on
 		
@@ -634,35 +653,13 @@ function WallJumpState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 			updGrav(yGrav, 1);
 		}
 		
-		if inRegion[1] {		
-			if WJFrame < xFramesToPeak * 2 {
-				updGrav(xGrav * wallDir * -1, 0); 
-			}
+		if inRegion[1] {
+			updGrav(xGrav * wallDir * -1, 0); 
 		}
 	}
 	
 	static getAnimUpd = function() {
 		
-	}
-	
-	/// If we collide with something, release control over the axis we collided on
-	static checkCollision12 = function() {
-		if inRegion[1] and persistVar.xVel == 0 {
-			checkAbility1();
-		}
-		if inRegion[2] and persistVar.yVel == 0 {
-			checkAbility2();
-		}
-	}
-	
-	/// Once the frames of our parabola have finished, switch back to the control of other states
-	static checkFrame12 = function() {
-		if inRegion[1] and WJFrame == xFramesToPeak * 2 {
-			checkAbility1();
-		}
-		if inRegion[2] and WJFrame == yFramesToPeak * 2 {
-			checkAbility2();
-		}
 	}
 	
 	/// If we try to move completely stop the parabola on the x axis and just let the player control normally
@@ -688,10 +685,38 @@ function WallJumpState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 		}
 	}
 	
+	static checkDash12 = function() {
+		if inputHandler.dashInputDir != 0 {
+			if inRegion[1] {stateMachine.requestChange(STATEHIERARCHY.dash, 1);}
+			if inRegion[2] {stateMachine.requestChange(STATEHIERARCHY.dash, 2);}
+		}
+	}
+	
+	/// If we collide with something, release control over the axis we collided on
+	static checkCollision12 = function() {
+		if inRegion[1] and persistVar.xVel == 0 {
+			checkAbility1();
+		}
+		if inRegion[2] and persistVar.yVel == 0 {
+			checkAbility2();
+		}
+	}
+	
+	/// Once the frames of our parabola have finished, switch back to the control of other states
+	static checkFrame12 = function() {
+		if inRegion[1] and WJFrame + 1 == xFramesToPeak * 2 {
+			checkAbility1();
+		}
+		if inRegion[2] and WJFrame + 1 == yFramesToPeak * 2 {
+			checkAbility2();
+		}
+	}
+	
 	checkChanges = function() {
-		checkCollision12();
-		checkFrame12();
 		checkWalk1();
 		checkClimb12();
+		checkDash12();
+		checkCollision12();
+		checkFrame12();
 	}
 }

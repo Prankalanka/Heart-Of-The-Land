@@ -9,8 +9,9 @@ var _walkAccel = 1.4;
 var _decel = 0.9;
 var _walkAccelDef = 1.4;
 var _walkAccelMax = 3.25;
+var _walkVelMax = 25;
 
-var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax];
+var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax, _walkVelMax];
 #endregion
 
 #region Health State Setup (Make a health region eventually)
@@ -65,6 +66,17 @@ var _slideDownVel = 6;
 var _slideDownerVel = 10;
 var 	_getClimbBox = function(_dirFacing) {
 	return [bbox_left + sprite_width / 10 * _dirFacing, bbox_top, bbox_right + sprite_width / 10 * _dirFacing, bbox_bottom];
+}
+var _checkClimbCont = function() {
+	var _inAnyRegion = array_any(states[STATEHIERARCHY.climb].inRegion, function(_val, _ind)
+	{
+		return _val == true
+	});
+	if inputHandler.climbHeld and !_inAnyRegion {
+		var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
+		var _extBox =  [bbox_left + sprite_width / 10 * _dirFacing, bbox_top, bbox_right + sprite_width / 10 * _dirFacing, bbox_bottom];
+		checkSetSurface(_extBox);
+	}
 }
 
 
@@ -307,7 +319,18 @@ function moveCamera() {
 }
 #endregion
 
-#region Input Handler Setup ( Maybe eventually should be its own object or constructor)
+
+#region Context Setup (Only the context uses these)
+xVelArray = [];
+
+activeStates = undefined;
+prioState = undefined;
+
+showRequests = true;
+showStates = false;
+#endregion
+
+#region Input Handler Setup (Handles the user and context's inputs for all states)  Maybe eventually should be its own object or constructor)
 inputHandler = {
 	xInputDir : 0,
 	checkWalk : function() {
@@ -358,11 +381,11 @@ inputHandler = {
 		}
 	},
 	
-	dashInput : 0, // Ranges from -1 to 1 
+	dashInputDir : 0, // Ranges from -1 to 1 
 	dashBuffer : [0, 0], // Input Handler
 	dashBufferMax : 18, // Input Handler
 	checkDash : function() {
-		dashInput = 0;
+		dashInputDir = 0;
 		
 		if (keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A"))) // and cooldown
 	    {
@@ -370,7 +393,7 @@ inputHandler = {
 	        dashBuffer[1] = 0;
 	        // If we press the key again whilst its buffer is above 0 we call stateTransition and switch states 
 	        if dashBuffer[0] > 0 {
-				dashInput  = 1;
+				dashInputDir  = 1;
 	        }
 	        else {
 	            // For the first frame a directional key is pressed, make the dash buffer for the key equal to 10
@@ -383,7 +406,7 @@ inputHandler = {
 	    if (keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D"))) {
 	        dashBuffer[0] = 0;
 	        if dashBuffer[1] > 0 {
-	            dashInput = -1;
+	            dashInputDir = -1;
 	        }
 	        else {
 	            dashBuffer[1] = dashBufferMax;
@@ -392,7 +415,14 @@ inputHandler = {
 	        dashBuffer[1] -= 1;
 	    }
 		
-		if  keyboard_check_pressed(vk_shift) 
+		if  keyboard_check(vk_shift) {
+			if keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D")) {
+				dashInputDir = -1;
+			}
+			if keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A")) {
+				dashInputDir = 1;
+			}
+		}
 	},
 	
 	swingInput : false,
@@ -433,15 +463,11 @@ inputHandler = {
 	
 	climbHeld : false,
 	wallSlideHeld : false,
-	upReleasedSinceClimb : true,
 	surface : undefined,
 	checkClimb : function() {
 		// Keep true if we're holding
 		climbHeld = (keyboard_check(ord("W")) or keyboard_check(vk_up))? true : false;
 		wallSlideHeld = (keyboard_check(ord("S")) or keyboard_check(vk_down))? true : false;
-		if keyboard_check_released(ord("W")) {
-			upReleasedSinceClimb = true;
-		}
 	},
 	
 	checkNothing : function() {
@@ -457,33 +483,18 @@ inputHandler = {
 	},
 	
 	checkContextInputs : function() {
-		var _inAnyRegion = array_any(other.states[STATEHIERARCHY.climb].inRegion, function(_val, _ind)
-		{
-		    return _val == true
-		});
-		if climbHeld and !_inAnyRegion {
-			var _dirFacing = (other.persistVar.indexFacing == 0)? 1 : -1;
-			var _extBox =  [other.bbox_left + other.sprite_width / 10 * _dirFacing, other.bbox_top, other.bbox_right + other.sprite_width / 10 * _dirFacing, other.bbox_bottom];
-			checkSetSurface(_extBox);
-		}
 	}
 };
 
 inputHandler.inputFunctions = [inputHandler.checkWalk, inputHandler.checkJump, inputHandler.checkDash, inputHandler.checkThrow, inputHandler.checkClimb];
+inputHandler.checkClimbCont = _checkClimbCont;
+inputHandler.checkContextInputs = function() {
+	inputHandler.checkClimbCont();
+}
 #endregion
 
-#region Context Setup (Only the context uses these)
-xVelArray = [];
-
-activeStates = undefined;
-prioState = undefined;
-
-showRequests = true;
-showStates = false;
-#endregion
-
-#region Entity Data Setup (Stuff tied to the context that also needs to be altered by states) 
-persistVar = { // Doesn't reset every frame and only hold these variables
+#region Persistant Variable Setup (Holds variables that the states need to read/write to, that aren't particularly tied to one state)
+persistVar = { 
 	colliderArray : [obj_platform],
 	isBelow : false,
 	isAbove : false,
@@ -491,7 +502,6 @@ persistVar = { // Doesn't reset every frame and only hold these variables
 	x,
 	y,
 	
-	xVelMax : ((_fakeMaxSpeed * power(25, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(25, _walkVarB))),
 	xVel : 0,
 	yVel : 0,
 
@@ -501,7 +511,7 @@ persistVar = { // Doesn't reset every frame and only hold these variables
 persistVar.isBelow = place_meeting(x, (y +1), persistVar.colliderArray);
 persistVar.isAbove = place_meeting(x, (y - 1), persistVar.colliderArray);
 
-tempVar = { // Resets every frame and calls functions 
+tempVar = { // GET RID OF
 	
 };
 	
@@ -726,13 +736,13 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // Get an input variable to make sure we facing the wall that we want to climb YAAAAAAAAAAAAAAAAAAA
 // Fall at a constant speed YAAAAAAAAAAAAAAAAAAA
 // Fall slower for the first few frames of climbing NAAAAAAAAAAAAAAAAAAAA It's worse
-// Have a tiny cooldown for previously climbed surfaces (part of wall jumping, less of a buffer for letting go if there even is one)
-// Get wall jump working
-// Get wall jump to follow a predetermined path if not interfered with using updGrav, if interfered with, switch control of the axis (region) to the other state
-// We'll do this on the x axis by converting the walkVel to one that corresponds with the current xVel, inAir doesn't really need to change
+// Have a tiny cooldown for previously climbed surfaces (part of wall jumping, less of a buffer for letting go if there even is one) 
+// Get wall jump working YAAAAAAAAAAAAAAAAAA
+// Get wall jump to follow a predetermined path if not interfered with using updGrav, if interfered with, switch control of the axis (region) to the other state YAAAAAAAAAAAAAAAAA
+// We'll do this on the x axis by converting the walkVel to one that corresponds with the current xVel, inAir doesn't really need to change YAAAAAAAAAAAAAAA
 // Get a generalised animation update for each state YAAAAAAAAAAAAAAAAAAAAAA
 // Improve the checkStuck function
-// GET RID OF THAT AUTONOMOUS BULLSHIT
+// GET RID OF THAT AUTONOMOUS BULLSHIT YAAAAAAAAAAAAA
 
 // BUGS
 // We get stuck on corners sometimes, I think due to our animation, but we should already unstuck ourselves when we change animation, also should also implement not getting stuck to be more aware of the direction we just took, so that it could more accurately unstuck us instead of just taking the shortest distance
@@ -745,9 +755,13 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME YAAAAAAAAAAAAAAAAAAAA
 // WE CAN'T GO DO THE WHOLE PIPELINE OF ONE ENTITY THEN MOVE ONTO ANOTHER ENTITY, WE NEED TO DO ONE STAGE OF EVERY ENTITY, THEN ANOTHER STAGE OF EVERY ENTITY
 // DO ANIM STUFF YAAAAAAAAAAAAAAAAAA
-// Put the vars of the inputHandler that aren't functions into a 2d array of states and their related vars
 
 // CLEAN UP
 // In the state machine we have a for loop that we use a lot to determine our state hierarchy, turn it into a function YAAAaaa
 // WE ARE MOVING STATE SPECIFIC FUNCTIONS AND VARIABLES TO THE STATE YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-// BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, get the user input, then based on that user input take in contextInput that we might need
+// BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, get the user input, then based on that user input take in contextInput that we might need YAAAAAAAAAAAAAA
+// Put the vars of the inputHandler that aren't functions into a 2d array of states and their related vars IM GONNA FOCUS ON ADDING AND IMPROVING FEATURES FOR A WHILE
+// Get rid of tempVar
+// Move some check functions to the base entity state
+// FInd better name for checkClimbCont, and the userinput function checkClimb
+// Give entity base state the changeState func, and only take reference to the two stateMachine arrays
