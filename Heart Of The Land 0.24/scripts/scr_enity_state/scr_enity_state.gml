@@ -1,8 +1,7 @@
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, it can alter which states are active, leading to major behavioural changes.
-function EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	persistVar = _persistVar; // Contains variables specific to the entity that states can modify
-	tempVar = _tempVar; // Contains variables specific to the entity that reset each frame and
 	stateMachine = _stateMachine;
 	inputHandler = _inputHandler;
 	anims = _anims; // All anims we can switch to within the state
@@ -40,12 +39,6 @@ function EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims
 	static getAnimUpd = function() {
 		
 	}
-	
-	/// Function that is transferred to the entity, detailing how it should handle the temp vars the state outputs
-	static fetchTempVar = function() {
-		
-	}
-	
 	
 	/// A non-static function, meaning it can vary from object to object, containing the logic for checking all possible changes a state can make
 	checkChanges = function() {

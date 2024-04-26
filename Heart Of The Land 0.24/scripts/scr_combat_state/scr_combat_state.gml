@@ -1,10 +1,10 @@
-function CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static stateSEnter = sEnter;
 }
 
-function IdleCombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function IdleCombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
-	static num = STATEHIERARCHY.idleCombat;
+	static num = SH.idleCombat;
 	checkSetHeld = _data[0]; // Hopefully bound to entity
 	
 	static updLogic = function() {
@@ -22,9 +22,9 @@ function IdleCombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _a
 	}
 }
 
-function HoldState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Hold";
-	static num = STATEHIERARCHY.hold;
+	static num = SH.hold;
 	
 	held = undefined;
 	
@@ -60,18 +60,18 @@ function HoldState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 			aimProjectilePos();
 			
 			throwProjectile(); // Changes held's state
-			stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
+			stateMachine.requestChange(SH.idleCombat, 0);
 		}
 	}
 	
 	static checkCancel = function() {
 		if inputHandler.holdCancel {
 			// Put in inventory once we implement it
-			stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
+			stateMachine.requestChange(SH.idleCombat, 0);
 			
-			held.stateMachine.requestChange(STATEHIERARCHY.idleCombat, 0);
-			held.stateMachine.requestChange(STATEHIERARCHY.idle, 1);
-			held.stateMachine.requestChange(STATEHIERARCHY.idle, 2);
+			held.stateMachine.requestChange(SH.idleCombat, 0);
+			held.stateMachine.requestChange(SH.idle, 1);
+			held.stateMachine.requestChange(SH.idle, 2);
 		}
 	}
 	

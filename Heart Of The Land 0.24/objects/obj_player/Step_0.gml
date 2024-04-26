@@ -16,15 +16,15 @@ if mouse_check_button(mb_left)  and attackCd
 if  keyboard_check_pressed(ord("V")) {
 	show_debug_message(xVelArray);
 }
-show_debug_message([
-persistVar.xVel,
-states[STATEHIERARCHY.walk].walkVel,
-states[STATEHIERARCHY.walk].walkAccel
-]);
+//show_debug_message([
+//persistVar.xVel,
+//states[SH.walk].walkVel,
+//states[SH.walk].walkAccel
+//]);
 
-show_debug_message([
-persistVar.yVel
-]);
+//show_debug_message([
+//persistVar.yVel
+//]);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);

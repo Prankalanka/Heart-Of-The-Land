@@ -59,6 +59,7 @@ function updX() {
 	persistVar.xVel = _tempXVel;
 
 	updPosVars();
+	show_debug_message(x);
 }
 	
 	
@@ -158,7 +159,7 @@ function faceDir(_velOrDir) {
 	var _instList = ds_list_create();
 	var _listLength = collision_rectangle_list(_extBox[0], _extBox[1], _extBox[2], _extBox[3], all, false, true, _instList, true);
 	
-	if _listLength != 0 {
+	if _listLength != 0 and inputHandler.cdClimb == 0 {
 	   for (var i = 0; i < _listLength; i++) {
 		   if _instList[|i] != _currentSurface and asset_has_tags(_instList[|i].object_index, "climbable") {
 			   // Check if our x value is closer to the left or right bbox boundary
@@ -166,17 +167,15 @@ function faceDir(_velOrDir) {
 				var _leftDiff = abs(_instList[|i].bbox_left) - abs(persistVar.x);
 				var _wallDir = (abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			   
-			   show_debug_message(_wallDir);
-			   
 			   // Only attach if we're running into the wall
-			   if inputHandler.xInputDir == _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
-				   inputHandler.surface = _instList[|i];
-				   ds_list_destroy(_instList);
-				   return true; // breaks out of function, not loop
-			   }
+			   //if inputHandler.xInputDir == _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
+				inputHandler.surface = _instList[|i];
+				ds_list_destroy(_instList);
+				return true; // breaks out of function, not loop
+			   //}
 		   }
 	   }
-	}
+	}	
 	ds_list_destroy(_instList);
 	return false;
 } 

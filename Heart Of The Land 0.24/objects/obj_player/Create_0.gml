@@ -6,7 +6,7 @@ var _fakeMaxSpeed = 11;
 var _walkVarA = 12;
 var _walkVarB = 2;
 var _walkAccel = 1.4;
-var _decel = 0.9;
+var _decel = 0.94;
 var _walkAccelDef = 1.4;
 var _walkAccelMax = 3.25;
 var _walkVelMax = 25;
@@ -64,17 +64,34 @@ swingDistance = 100;
 // Climb
 var _slideDownVel = 6;
 var _slideDownerVel = 10;
+
 var 	_getClimbBox = function(_dirFacing) {
-	return [bbox_left + sprite_width / 10 * _dirFacing, bbox_top, bbox_right + sprite_width / 10 * _dirFacing, bbox_bottom];
+	// Reduce the hitbox in the opposite direction we're facing
+	 if _dirFacing = 1 {
+		return [bbox_left + sprite_width/8, bbox_top, bbox_right, bbox_bottom];
+	}
+	else {
+		return [bbox_left, bbox_top, bbox_right - sprite_width/8, bbox_bottom];
+	}
 }
+
 var _checkClimbCont = function() {
-	var _inAnyRegion = array_any(states[STATEHIERARCHY.climb].inRegion, function(_val, _ind)
+	var _inAnyRegion = array_any(states[SH.climb].inRegion, function(_val, _ind)
 	{
 		return _val == true
 	});
 	if inputHandler.climbHeld and !_inAnyRegion {
 		var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
-		var _extBox =  [bbox_left + sprite_width / 10 * _dirFacing, bbox_top, bbox_right + sprite_width / 10 * _dirFacing, bbox_bottom];
+		var _extBox =  [bbox_left, bbox_top, bbox_right, bbox_bottom];
+		
+		// Reduce the hitbox in the opposite direction we're facing
+		if _dirFacing = 1 {
+			_extBox = [bbox_left + sprite_width/8, bbox_top, bbox_right, bbox_bottom];
+		}
+		else {
+			_extBox = [bbox_left, bbox_top, bbox_right - sprite_width/8, bbox_bottom];
+		}
+		
 		checkSetSurface(_extBox);
 	}
 }
@@ -325,8 +342,8 @@ xVelArray = [];
 activeStates = undefined;
 prioState = undefined;
 
-showRequests = true;
-showStates = false;
+canShowRequests = true;
+canShowStates = false;
 #endregion
 
 #region Input Handler Setup (Handles the user and context's inputs for all states)  Maybe eventually should be its own object or constructor)
@@ -463,10 +480,16 @@ inputHandler = {
 	climbHeld : false,
 	wallSlideHeld : false,
 	surface : undefined,
+	cdClimb : 0,
+	cdClimbMax : 5,
 	checkClimb : function() {
 		// Keep true if we're holding
 		climbHeld = (keyboard_check(ord("W")) or keyboard_check(vk_up))? true : false;
 		wallSlideHeld = (keyboard_check(ord("S")) or keyboard_check(vk_down))? true : false;
+		if cdClimb > 0 {
+			cdClimb--;
+		}
+		surface = undefined; // We check for surface after user input checks so this is alright
 	},
 	
 	checkNothing : function() {
@@ -492,29 +515,21 @@ inputHandler.checkContextInputs = function() {
 }
 #endregion
 
-#region Persistant Variable Setup (Holds variables that the states need to read/write to, that aren't particularly tied to one state)
+#region Persistant Variable Setup (Holds variables that the states need to read/write to, that multiple states need)
 persistVar = { 
+	// Context
 	colliderArray : [obj_platform],
 	isBelow : false,
 	isAbove : false,
+	indexFacing : 0,
 	
-	x,
-	y,
-	
-	xVelMax : ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax),
 	xVel : 0,
 	yVel : 0,
-
-	indexFacing : 0,
-};
-
-persistVar.isBelow = place_meeting(x, (y +1), persistVar.colliderArray);
-persistVar.isAbove = place_meeting(x, (y - 1), persistVar.colliderArray);
-
-tempVar = { // GET RID OF
 	
-};
-	
+	// Walk 
+	xVelMax : ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax),	
+}
+
 #endregion
 
 #region New Entity Functions
@@ -528,16 +543,16 @@ states = [];
 
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, they can alter which states are active, leading to major behavioural changes.
-states[STATEHIERARCHY.idle] = new IdleState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
-states[STATEHIERARCHY.walk] = new WalkState(persistVar, tempVar, stateMachine, inputHandler, _walkAnims, _walkData);
-states[STATEHIERARCHY.inAir] =  new InAirState(persistVar, tempVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
-states[STATEHIERARCHY.jump] = new JumpState(persistVar, tempVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
-states[STATEHIERARCHY.dash] = new DashState(persistVar, tempVar, stateMachine, inputHandler, _dashAnims); 
-states[STATEHIERARCHY.projectile] = new ProjectileState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
-states[STATEHIERARCHY.idleCombat] = new IdleCombatState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
-states[STATEHIERARCHY.hold] = new HoldState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims);
-states[STATEHIERARCHY.climb] = new ClimbState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _climbData);
-states[STATEHIERARCHY.wallJump] = new WallJumpState(persistVar, tempVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
+states[SH.idle] = new IdleState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.walk] = new WalkState(persistVar, stateMachine, inputHandler, _walkAnims, _walkData);
+states[SH.inAir] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
+states[SH.jump] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
+states[SH.dash] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims); 
+states[SH.projectile] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.idleCombat] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
+states[SH.hold] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.climb] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
+states[SH.wallJump] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
 
 #region State Functions
 /// In its own function so states don't have to be defined when we create the stateMachine.
@@ -546,7 +561,7 @@ initStates = function(_startingStates)
 {
 	activeStates = _startingStates;
 		
-	// Enter aand region all current states
+	// Enter and region all current states
 	for (var i = 0; i < array_length(activeStates); i++) {
 		activeStates[i].inRegion[i] = true;
 		activeStates[i].sEnter();
@@ -564,13 +579,13 @@ execPipeLine = function() {
 	
 	checkChanges();
 		
-	if showRequests {
+	if canShowRequests {
 		stateMachine.showRequests();
 	}
 		 
 	changeStates();
 		 
-	if showStates {
+	if canShowStates {
 		showStates();
 	}
 	
@@ -585,6 +600,7 @@ execPipeLine = function() {
 	}
 }
 
+// Run updLogic func for each state
 updLogic = function() {
 	// Resets so we can tell which ones are unique again
 	for (var i = 0; i < array_length(activeStates); i++) {
@@ -600,12 +616,14 @@ updLogic = function() {
 	}
 }
 
+// Upd x and y based on persistVar's x and y velocities
 updPos = function() {
 	// Update Position (states only control velocity)
 	if persistVar.xVel != 0 {updX();}
 	if persistVar.yVel != 0 {updY();}
 }
 
+// Set arguments to their respective variables
 updAnim = function(_spriteIndex = undefined, _imageIndex = undefined, _imageSpeed = undefined) {
 	// GONNA BE FUNC OF ENTITY
 	if _spriteIndex != undefined {
@@ -667,7 +685,8 @@ changeStates = function() {
 		stateMachine.changeData = [];
 	}
 }
-	
+
+// Run checkChanges func for each state
 checkChanges = function() {
 	// Resets so we can tell which ones are unique again
 	for (var i = 0; i < array_length(activeStates); i++) {
@@ -715,12 +734,12 @@ showStates = function() {
 #endregion
 
 // INITIALISE THE STATE MACHINE
-var _startingStates = [states[STATEHIERARCHY.idleCombat], states[STATEHIERARCHY.idle], states[STATEHIERARCHY.idle]];
+var _startingStates = [states[SH.idleCombat], states[SH.idle], states[SH.idle]];
 initStates(_startingStates);
 
  // walkVel testing
 for (var i = 0; i <= 8.94; i += 0.01) {
-	var _convWalkVel = power((-(power(states[STATEHIERARCHY.walk].walkVarA, -states[STATEHIERARCHY.walk].walkVarB) * (-states[STATEHIERARCHY.walk].fakeMaxSpeed + i))/i), (-1/states[STATEHIERARCHY.walk].walkVarB));
+	var _convWalkVel = power((-(power(states[SH.walk].walkVarA, -states[SH.walk].walkVarB) * (-states[SH.walk].fakeMaxSpeed + i))/i), (-1/states[SH.walk].walkVarB));
 	array_push(xVelArray, [i, _convWalkVel]);
 }
 #endregion
@@ -743,6 +762,13 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // Get a generalised animation update for each state YAAAAAAAAAAAAAAAAAAAAAA
 // Improve the checkStuck function
 // GET RID OF THAT AUTONOMOUS BULLSHIT YAAAAAAAAAAAAA
+// Make movement more cohesive (taking notes, adding buffers and stuff)
+// Add cooldown to climb, so we don't instantly climb after wall jumping YAAAAAAAAAAAAAAAA
+// Reduce hitbox on direction we aren't facing 
+// Input handler was saving surface, which lead us to teleport to surface if we hold w and are not on ground, fixed
+// Weird stuff with a lot of surfaces stacked closely together (might not fix)
+
+
 
 // BUGS
 // We get stuck on corners sometimes, I think due to our animation, but we should already unstuck ourselves when we change animation, also should also implement not getting stuck to be more aware of the direction we just took, so that it could more accurately unstuck us instead of just taking the shortest distance
@@ -765,3 +791,4 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // Move some check functions to the base entity state
 // FInd better name for checkClimbCont, and the userinput function checkClimb
 // Give entity base state the changeState func, and only take reference to the two stateMachine arrays
+

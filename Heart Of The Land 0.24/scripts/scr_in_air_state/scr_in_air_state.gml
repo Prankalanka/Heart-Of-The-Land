@@ -1,6 +1,6 @@
-function InAirState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "InAir";
-	static num = STATEHIERARCHY.inAir;
+	static num = SH.inAir;
 	static stateSEnter = sEnter;
 	grav = _data[0];
 	coyoteMax = _data[1];
@@ -47,34 +47,34 @@ function InAirState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims,
 	static checkIdleWalk2 = function() {
 		if persistVar.isBelow {
 			if inputHandler.xInputDir == 0 and persistVar.xVel == 0 {
-				stateMachine.requestChange(STATEHIERARCHY.idle, 2);
+				stateMachine.requestChange(SH.idle, 2);
 			} else {
-				stateMachine.requestChange(STATEHIERARCHY.walk, 2);
+				stateMachine.requestChange(SH.walk, 2);
 			}
 		}
 	}
 	
 	static checkJump2 = function() {
 		if  !persistVar.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump {
-			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
+			stateMachine.requestChange(SH.jump, 2);
 		}
 	}
 		
 	static checkClimb2 = function() {
-		if inputHandler.climbHeld and inputHandler.surface != undefined {
+		if inputHandler.climbHeld and inputHandler.surface != undefined and inputHandler.cdClimb == 0 {
 			// Check if our x value is closer to the left or right bbox boundary
 			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(persistVar.x);
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(STATEHIERARCHY.climb, 2, [_wallDir]);
+			stateMachine.requestChange(SH.climb, 2, [_wallDir]);
 		}
 	}
 	
 	static checkDash2 = function() {
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
+			stateMachine.requestChange(SH.dash, 2);
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /// Super class for all grounded states.
-function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	xInputDir = 0;
 	
 	/// Update xInput
@@ -11,15 +11,15 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(STATEHIERARCHY.dash, 1);
+			stateMachine.requestChange(SH.dash, 1);
 		}
-		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined {
+		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined and inputHandler.cdClimb == 0 {
 			// Check if our x value is closer to the left or right bbox boundary
 			var _rightDiff = abs(inputHandler.surface.bbox_right) - abs(persistVar.x);
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(STATEHIERARCHY.climb, 1, [_wallDir]);
+			stateMachine.requestChange(SH.climb, 1, [_wallDir]);
 		}
 	}
 	
@@ -28,23 +28,23 @@ function GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _ani
 		persistVar.yVel = 0; // So InAir knows we've been grounded, also perfomance
 		// Changes to InAir state if nothing is below us
 		if  !(persistVar.isBelow) {
-			stateMachine.requestChange(STATEHIERARCHY.inAir, 2);
+			stateMachine.requestChange(SH.inAir, 2);
 		} // Changes to Jump State if there's input
 		else if inputHandler.jumpInput and !persistVar.isAbove {
-			stateMachine.requestChange(STATEHIERARCHY.jump, 2);
+			stateMachine.requestChange(SH.jump, 2);
 		}
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(STATEHIERARCHY.dash, 2);
+			stateMachine.requestChange(SH.dash, 2);
 		}
 	}
 	
 }
 
 /// Changes to move state if xInput
-function IdleState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle";
-	static num = STATEHIERARCHY.idle;
+	static num = SH.idle;
 	
 	static sEnter = function() {
 	}
@@ -66,8 +66,8 @@ function IdleState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 	static checkWalk12 = function() {
 		// Go to move state if input
 		if xInputDir != 0 or persistVar.xVel != 0 {
-			if inRegion[1] {stateMachine.requestChange(STATEHIERARCHY.walk, 1);}
-			if inRegion[2] {stateMachine.requestChange(STATEHIERARCHY.walk, 2);}
+			if inRegion[1] {stateMachine.requestChange(SH.walk, 1);}
+			if inRegion[2] {stateMachine.requestChange(SH.walk, 2);}
 		}
 	}
 	
@@ -90,9 +90,9 @@ function IdleState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 }
 
 /// Changes to IdleState if no xInput and xVel is 0
-function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Walk";
-	static num = STATEHIERARCHY.walk;
+	static num = SH.walk;
 	walkVel = _data[0];
 	fakeMaxSpeed = _data[1];
 	walkVarA = _data[2];
@@ -160,8 +160,8 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 	/// Go to idle state if no input and no velocity	
 	static checkIdle12 = function() {
 		if xInputDir == 0 and xVel == 0 {
-			if inRegion[1] {stateMachine.requestChange(STATEHIERARCHY.idle, 1);}
-			if inRegion[2] {stateMachine.requestChange(STATEHIERARCHY.idle, 2);}
+			if inRegion[1] {stateMachine.requestChange(SH.idle, 1);}
+			if inRegion[2] {stateMachine.requestChange(SH.idle, 2);}
 		}
 	}	
 	
@@ -277,7 +277,7 @@ function WalkState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, 
 
 #region Useless State
 /*
-function GroundMotionState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _tempVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+function GroundMotionState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Ground Motion";
 	static num = 6;
 	static groundedUpdLogic = updLogic;
@@ -333,7 +333,7 @@ function GroundMotionState(_persistVar, _tempVar, _stateMachine, _inputHandler, 
 			entity.xVel = ((fakeMaxSpeed * power(_nextwalkVel, walkVarB)) / (power(walkVarA, walkVarB) + power(_nextwalkVel, walkVarB))) * sign(xVel);
 			entity.walkVel = _nextwalkVel * sign(xVel);
 			with entity {updX(sign(xVel));}
-			stateMachine.requestChange(STATEHIERARCHY.walk, 1);
+			stateMachine.requestChange(SH.walk, 1);
 		}
 	}
 	checkGrounded1();

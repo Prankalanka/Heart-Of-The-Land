@@ -1,4 +1,4 @@
-enum STATEHIERARCHY {
+enum SH {
 	// Region 1 States (can be multi-region when grounded but clearer this way)
 	idleCombat,
 	idle,
