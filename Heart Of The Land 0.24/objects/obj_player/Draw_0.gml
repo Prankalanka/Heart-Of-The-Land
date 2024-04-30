@@ -4,9 +4,9 @@
 
 draw_self();
 
-if activeStates[0] == states[SH.hold] {
-	states[SH.hold].drawPath();
-	draw_circle_color(states[SH.hold].initMPos[0], states[SH.hold].initMPos[1], 64, c_red, c_orange, false);
+if activeStates[0] == states[SH.HOLD] {
+	states[SH.HOLD].drawPath();
+	draw_circle_color(states[SH.HOLD].initMPos[0], states[SH.HOLD].initMPos[1], 64, c_red, c_orange, false);
 }
 
 var _extBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];// Extend left, right and top sides by a quarter of width or height

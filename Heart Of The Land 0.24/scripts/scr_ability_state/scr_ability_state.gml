@@ -6,9 +6,9 @@ function AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 	static checkAbility1 = function() {
 		if inRegion[1] {
 			if persistVar.xVel == 0 and inputHandler.xInputDir == 0 {
-				stateMachine.requestChange(SH.idle, 1);
+				stateMachine.requestChange(SH.IDLE, 1);
 			} else {
-				stateMachine.requestChange(SH.walk, 1);
+				stateMachine.requestChange(SH.WALK, 1);
 			}
 		}
 	}
@@ -16,13 +16,13 @@ function AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 	static checkAbility2 = function() {
 		if inRegion[2] {
 			if !persistVar.isBelow {
-				stateMachine.requestChange(SH.inAir, 2);
+				stateMachine.requestChange(SH.INAIR, 2);
 			}
 			else {
 				if persistVar.xVel == 0 and inputHandler.xInputDir == 0 {
-					stateMachine.requestChange(SH.idle, 2);
+					stateMachine.requestChange(SH.IDLE, 2);
 				} else {
-					stateMachine.requestChange(SH.walk, 2);
+					stateMachine.requestChange(SH.WALK, 2);
 				}
 			}
 		}
@@ -31,7 +31,7 @@ function AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 
 function JumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Jump";
-	static num = SH.jump;
+	static num = SH.JUMP;
 	static abilitySEnter = sEnter;
 	peak = _data[0];
 	framesToPeak = _data[1];
@@ -76,14 +76,14 @@ function JumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 
 function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Dash";
-	static num = SH.dash;
+	static num = SH.DASH;
 	dir = 0;
 	dashFrame = 0;
 	isAbilityDone = false;
 	
 	static sEnter = function(_data = undefined) {	
 		// Update dir
-		dir = inputHandler.xInputDir * -1;
+		dir = inputHandler.xInputDir;
 		
 		// Reset dashFtame
 		dashFrame = 0;
@@ -100,9 +100,9 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	    // Start at 1 cuz 0 makes xVel equal 0
 	    dashFrame += 1;
 		
-		persistVar.xVel =  ( 1 / 40 * power((dashFrame * 2 - 30), 2) - 20.5) * dir;
+		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 5 * dir) * 0.85;
 		
-	    if dashFrame == 15 {
+	    if dashFrame == 12 {
 			isAbilityDone = true;
 	    }
 	}
@@ -116,17 +116,23 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	static checkWalk12 = function() {
 		if dashFrame == 15 and abs(persistVar.xVel) >= persistVar.xVelMax {
 			if inRegion[1] {
-				stateMachine.requestChange(SH.walk, 1);
+				stateMachine.requestChange(SH.WALK, 1);
 			}
 			if inRegion[2] {	
-				stateMachine.requestChange(SH.walk, 2);
+				stateMachine.requestChange(SH.WALK, 2);
 			}
 		}
 	}
 		
+	static checkInAir2 = function() {
+		if  !(persistVar.isBelow) {
+			stateMachine.requestChange(SH.INAIR, 2);
+		} 
+	}
+	
 	static checkJump2 = function() {
 		if inputHandler.jumpInput and !persistVar.isAbove and persistVar.isBelow {
-			stateMachine.requestChange(SH.jump, 2);
+			stateMachine.requestChange(SH.JUMP, 2);
 		}
 	}
 		
@@ -138,10 +144,10 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
 			if inRegion[1] {
-				stateMachine.requestChange(SH.climb, 1, [_wallDir]);
+				stateMachine.requestChange(SH.CLIMB, 1, [_wallDir]);
 			}
 			if inRegion[2] {	
-				stateMachine.requestChange(SH.climb, 2, [_wallDir]);
+				stateMachine.requestChange(SH.CLIMB, 2, [_wallDir]);
 			}
 		}
 	}
@@ -163,7 +169,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 
 function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Projectile";
-	static num = SH.projectile;
+	static num = SH.PROJECTILE;
 
 	projectileFrame = 0;
 	
@@ -517,7 +523,7 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 
 function HeldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Held";
-	static num = SH.held;
+	static num = SH.HELD;
 	holder = undefined;
 	
 	static sEnter = function(_data) {
@@ -532,7 +538,7 @@ function HeldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 
 function ClimbState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Climb";
-	static num = SH.climb;
+	static num = SH.CLIMB;
 	surface = undefined; 
 	slideDownVel = _data[0];
 	slideDownerVel = _data[1];
@@ -585,15 +591,15 @@ function ClimbState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	
 	static checkWallJump12 = function() {
 		if inputHandler.jumpInput {
-			stateMachine.requestChange(SH.wallJump, 1, [wallDir]);
-			stateMachine.requestChange(SH.wallJump, 2);
+			stateMachine.requestChange(SH.WALLJUMP, 1, [wallDir]);
+			stateMachine.requestChange(SH.WALLJUMP, 2);
 		}
 	}
 	
 	static checkDash12 = function() {
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.dash, 1);
-			stateMachine.requestChange(SH.dash, 2);
+			stateMachine.requestChange(SH.DASH, 1);
+			stateMachine.requestChange(SH.DASH, 2);
 		}
 	}
 	
@@ -642,7 +648,7 @@ function ClimbState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 
 function WallJumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Wall Jump";
-	static num = SH.wallJump;
+	static num = SH.WALLJUMP;
 	xInitVel = _data[0];
 	xFramesToPeak = _data[1];
 	xPeak = _data[2];
@@ -696,7 +702,7 @@ function WallJumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 	/// If we try to move completely stop the parabola on the x axis and just let the player control normally
 	static checkWalk1= function() {
 		if inputHandler.xInputDir != 0 {
-			stateMachine.requestChange(SH.walk, 1);
+			stateMachine.requestChange(SH.WALK, 1);
 		}
 	}
 
@@ -708,18 +714,18 @@ function WallJumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 
 			if inRegion[1] {
-				stateMachine.requestChange(SH.climb, 1, [_wallDir]);
+				stateMachine.requestChange(SH.CLIMB, 1, [_wallDir]);
 			}
 			if inRegion[2] {	
-				stateMachine.requestChange(SH.climb, 2, [_wallDir]);
+				stateMachine.requestChange(SH.CLIMB, 2, [_wallDir]);
 			}
 		}
 	}
 	
 	static checkDash12 = function() {
 		if inputHandler.dashInputDir != 0 {
-			if inRegion[1] {stateMachine.requestChange(SH.dash, 1);}
-			if inRegion[2] {stateMachine.requestChange(SH.dash, 2);}
+			if inRegion[1] {stateMachine.requestChange(SH.DASH, 1);}
+			if inRegion[2] {stateMachine.requestChange(SH.DASH, 2);}
 		}
 	}
 	

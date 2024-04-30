@@ -1,23 +1,22 @@
 enum SH {
 	// Region 1 States (can be multi-region when grounded but clearer this way)
-	idleCombat,
-	idle,
-	walk,
-	dash,
+	IDLECOMBAT,
+	IDLE,
+	WALK,
+	DASH,
 	
 	// Region 2 States
-	inAir,
-	climb,
-	jump,
-	wallJump,
+	INAIR,
+	CLIMB,
+	JUMP,
+	WALLJUMP,
 	
 	// Multi-Region States
-	projectile,
+	PROJECTILE,
 	
 	// Region 3 States
-	hold,
-	held,
-	
+	HOLD,
+	HELD,
 }
 
 

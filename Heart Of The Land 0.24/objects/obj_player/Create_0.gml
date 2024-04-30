@@ -7,9 +7,9 @@ var _walkVarA = 12;
 var _walkVarB = 2;
 var _walkAccel = 1.4;
 var _decel = 0.94;
-var _walkAccelDef = 1.4;
-var _walkAccelMax = 3.25;
-var _walkVelMax = 25;
+var _walkAccelDef = 1.1;
+var _walkAccelMax = 4.5;
+var _walkVelMax = 28;
 
 var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax, _walkVelMax];
 #endregion
@@ -33,15 +33,16 @@ var _inAirAnims = [spr_jump_right, spr_jump_left];
 
 // Jump State
 var _peak = -300;
-var _framesToPeak = 25;
+var _framesToPeak = 23;
 var _initJumpVel = (2 * _peak) / _framesToPeak + _peak/sqr(_framesToPeak);
 var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 
 // In Air State
 var _coyoteMax = 9;
-var  _yVelMax = 28;
+var  _yVelMax = 30;
+var _coyoteDistMax = 20;
 
-var _inAirData = [_grav, _coyoteMax, _yVelMax];
+var _inAirData = [_grav, _coyoteMax, _yVelMax, _coyoteDistMax];
 var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
 #endregion
 
@@ -76,7 +77,7 @@ var 	_getClimbBox = function(_dirFacing) {
 }
 
 var _checkClimbCont = function() {
-	var _inAnyRegion = array_any(states[SH.climb].inRegion, function(_val, _ind)
+	var _inAnyRegion = array_any(states[SH.CLIMB].inRegion, function(_val, _ind)
 	{
 		return _val == true
 	});
@@ -344,6 +345,9 @@ prioState = undefined;
 
 canShowRequests = true;
 canShowStates = false;
+
+initX = x;
+initY = y;
 #endregion
 
 #region Input Handler Setup (Handles the user and context's inputs for all states)  Maybe eventually should be its own object or constructor)
@@ -518,7 +522,7 @@ inputHandler.checkContextInputs = function() {
 #region Persistant Variable Setup (Holds variables that the states need to read/write to, that multiple states need)
 persistVar = { 
 	// Context
-	colliderArray : [obj_platform],
+	colliderArray : [obj_platform, obj_block],
 	isBelow : false,
 	isAbove : false,
 	indexFacing : 0,
@@ -543,17 +547,16 @@ states = [];
 
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, they can alter which states are active, leading to major behavioural changes.
-states[SH.idle] = new IdleState(persistVar, stateMachine, inputHandler, _idleAnims);
-states[SH.walk] = new WalkState(persistVar, stateMachine, inputHandler, _walkAnims, _walkData);
-states[SH.inAir] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
-states[SH.jump] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
-states[SH.dash] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims); 
-states[SH.projectile] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
-states[SH.idleCombat] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
-states[SH.hold] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
-states[SH.climb] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
-states[SH.wallJump] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
-
+states[SH.IDLE] = new IdleState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.WALK] = new WalkState(persistVar, stateMachine, inputHandler, _walkAnims, _walkData);
+states[SH.INAIR] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
+states[SH.JUMP] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
+states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims); 
+states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.IDLECOMBAT] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
+states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
+states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
 #region State Functions
 /// In its own function so states don't have to be defined when we create the stateMachine.
 /// Sets activeStates to arguments, enters and regions the activeStates, and sets prioState
@@ -734,14 +737,14 @@ showStates = function() {
 #endregion
 
 // INITIALISE THE STATE MACHINE
-var _startingStates = [states[SH.idleCombat], states[SH.idle], states[SH.idle]];
+var _startingStates = [states[SH.IDLECOMBAT], states[SH.IDLE], states[SH.IDLE]];
 initStates(_startingStates);
 
- // walkVel testing
-for (var i = 0; i <= 8.94; i += 0.01) {
-	var _convWalkVel = power((-(power(states[SH.walk].walkVarA, -states[SH.walk].walkVarB) * (-states[SH.walk].fakeMaxSpeed + i))/i), (-1/states[SH.walk].walkVarB));
-	array_push(xVelArray, [i, _convWalkVel]);
-}
+// // walkVel testing
+//for (var i = 0; i <= 8.94; i += 0.01) {
+//	var _convWalkVel = power((-(power(states[SH.walk].walkVarA, -states[SH.walk].walkVarB) * (-states[SH.walk].fakeMaxSpeed + i))/i), (-1/states[SH.walk].walkVarB));
+//	array_push(xVelArray, [i, _convWalkVel]);
+//}
 #endregion
 
 // NEXT STEPS
@@ -755,7 +758,7 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // Get an input variable to make sure we facing the wall that we want to climb YAAAAAAAAAAAAAAAAAAA
 // Fall at a constant speed YAAAAAAAAAAAAAAAAAAA
 // Fall slower for the first few frames of climbing NAAAAAAAAAAAAAAAAAAAA It's worse
-// Have a tiny cooldown for previously climbed surfaces (part of wall jumping, less of a buffer for letting go if there even is one) 
+// Have a tiny cooldown for previously climbed surfaces (part of wall jumping, less of a buffer for letting go if there even is one) YAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 // Get wall jump working YAAAAAAAAAAAAAAAAAA
 // Get wall jump to follow a predetermined path if not interfered with using updGrav, if interfered with, switch control of the axis (region) to the other state YAAAAAAAAAAAAAAAAA
 // We'll do this on the x axis by converting the walkVel to one that corresponds with the current xVel, inAir doesn't really need to change YAAAAAAAAAAAAAAA
@@ -764,9 +767,12 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // GET RID OF THAT AUTONOMOUS BULLSHIT YAAAAAAAAAAAAA
 // Make movement more cohesive (taking notes, adding buffers and stuff)
 // Add cooldown to climb, so we don't instantly climb after wall jumping YAAAAAAAAAAAAAAAA
-// Reduce hitbox on direction we aren't facing 
-// Input handler was saving surface, which lead us to teleport to surface if we hold w and are not on ground, fixed
-// Weird stuff with a lot of surfaces stacked closely together (might not fix)
+// Reduce hitbox on direction we aren't facing YAAAAAAAAAAAAAAAAAA
+// Input handler was saving surface, which lead us to teleport to surface if we hold w and are not on ground, YAAAAAAAAAAAAAAA
+// Make climbBox shorter from the bottom
+// Dashing changed slightly (equation changed but similar results) YAAAAAAAAAAAAAAAAAAAA
+// Dashing didn't change to inAir... had to go through jump to do that, fix YAAAAAAAAAAAAAAAAAAA
+
 
 
 
@@ -781,6 +787,7 @@ for (var i = 0; i <= 8.94; i += 0.01) {
 // WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME YAAAAAAAAAAAAAAAAAAAA
 // WE CAN'T GO DO THE WHOLE PIPELINE OF ONE ENTITY THEN MOVE ONTO ANOTHER ENTITY, WE NEED TO DO ONE STAGE OF EVERY ENTITY, THEN ANOTHER STAGE OF EVERY ENTITY
 // DO ANIM STUFF YAAAAAAAAAAAAAAAAAA
+// When we collide with something on the x axis, strange things happen to our walkVel
 
 // CLEAN UP
 // In the state machine we have a for loop that we use a lot to determine our state hierarchy, turn it into a function YAAAaaa

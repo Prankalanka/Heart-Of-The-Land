@@ -11,7 +11,7 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.dash, 1);
+			stateMachine.requestChange(SH.DASH, 1);
 		}
 		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined and inputHandler.cdClimb == 0 {
 			// Check if our x value is closer to the left or right bbox boundary
@@ -19,7 +19,7 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(SH.climb, 1, [_wallDir]);
+			stateMachine.requestChange(SH.CLIMB, 1, [_wallDir]);
 		}
 	}
 	
@@ -28,14 +28,14 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 		persistVar.yVel = 0; // So InAir knows we've been grounded, also perfomance
 		// Changes to InAir state if nothing is below us
 		if  !(persistVar.isBelow) {
-			stateMachine.requestChange(SH.inAir, 2);
+			stateMachine.requestChange(SH.INAIR, 2);
 		} // Changes to Jump State if there's input
 		else if inputHandler.jumpInput and !persistVar.isAbove {
-			stateMachine.requestChange(SH.jump, 2);
+			stateMachine.requestChange(SH.JUMP, 2);
 		}
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.dash, 2);
+			stateMachine.requestChange(SH.DASH, 2);
 		}
 	}
 	
@@ -44,7 +44,7 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 /// Changes to move state if xInput
 function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle";
-	static num = SH.idle;
+	static num = SH.IDLE;
 	
 	static sEnter = function() {
 	}
@@ -66,8 +66,8 @@ function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	static checkWalk12 = function() {
 		// Go to move state if input
 		if xInputDir != 0 or persistVar.xVel != 0 {
-			if inRegion[1] {stateMachine.requestChange(SH.walk, 1);}
-			if inRegion[2] {stateMachine.requestChange(SH.walk, 2);}
+			if inRegion[1] {stateMachine.requestChange(SH.WALK, 1);}
+			if inRegion[2] {stateMachine.requestChange(SH.WALK, 2);}
 		}
 	}
 	
@@ -92,7 +92,7 @@ function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 /// Changes to IdleState if no xInput and xVel is 0
 function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Walk";
-	static num = SH.walk;
+	static num = SH.WALK;
 	walkVel = _data[0];
 	fakeMaxSpeed = _data[1];
 	walkVarA = _data[2];
@@ -104,7 +104,9 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	walkVelMax = _data[8];
 	xVelMax =  ((fakeMaxSpeed * power(walkVelMax, walkVarB)) / (power(walkVarA, walkVarB) + power(walkVelMax, walkVarB))) * sign(walkVelMax);
 	xVel = undefined;
+	xInputDir = 0;
 	walkInputDir = 0;
+	accelledThisTurn = undefined;
 	walkAnims = [anims[0], anims[1]];
 	idleAnims = [anims[2], anims[3]];
 	
@@ -115,19 +117,25 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 
 	static updLogic = function() {
-		groundedUpdLogic(); // Update xInput 
+		var _prevXInputDir = xInputDir;
+		groundedUpdLogic(); // Update xInput
 		xVel = persistVar.xVel;
 		
 		// Only do when grounded (or when we're not calling the update function from a different state)
 		if inRegion[1] {
 			// Update xVel and X
 			if abs(xVel) <= xVelMax {
+				convXToWalk();
 				updAccel(); 
 				updVel();
 			}
 			else {
 				updXVel();
 			}
+		}
+		
+		if _prevXInputDir != xInputDir {
+			accelledThisTurn = false;
 		}
 	}
 	
@@ -160,8 +168,8 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	/// Go to idle state if no input and no velocity	
 	static checkIdle12 = function() {
 		if xInputDir == 0 and xVel == 0 {
-			if inRegion[1] {stateMachine.requestChange(SH.idle, 1);}
-			if inRegion[2] {stateMachine.requestChange(SH.idle, 2);}
+			if inRegion[1] {stateMachine.requestChange(SH.IDLE, 1);}
+			if inRegion[2] {stateMachine.requestChange(SH.IDLE, 2);}
 		}
 	}	
 	
@@ -195,17 +203,24 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		if xInputDir != sign(walkVel + xInputDir) or xInputDir == 0 {
 			walkInputDir = (xInputDir == 0)? sign(walkVel) * -1 : xInputDir; // Make dir the opposite sign of walkVel if inputDir is 0
 			if walkAccel == walkAccelDef {
-				walkAccel = walkAccelMax;
+				// do this once per direction change accelledThisTurn
+				if !accelledThisTurn {
+					walkAccel = walkAccelMax;
+					accelledThisTurn = true;
+				}
 			}			
-			if walkAccel > walkAccelDef {
-				walkAccel -= 0.25;
+			if walkAccel - 0.35 >= walkAccelDef {
+				walkAccel -= 0.35;
 			} 
 			else {
 				walkAccel = walkAccelDef;
 			}
 		} 
-		else {	
-			walkAccel = walkAccelDef;	
+		else if walkAccel - 0.35 >= walkAccelDef  {	
+			walkAccel -= 0.35;	
+		}
+		else {
+			walkAccel = walkAccelDef;
 		}
 	}
 	
@@ -246,6 +261,9 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		if abs(xVel) <= xVelMax {
 			var _convWalkVel = power((-(power(walkVarA, -walkVarB) * (-fakeMaxSpeed + abs(xVel)))/abs(xVel)), (-1/walkVarB)) * sign(xVel);
 			walkVel = (is_nan(_convWalkVel))? 0 : _convWalkVel;
+			if xVel == 0  and walkVel != 0{
+				return;
+			}
 		}
 	}
 		

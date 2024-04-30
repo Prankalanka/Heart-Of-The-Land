@@ -59,7 +59,6 @@ function updX() {
 	persistVar.xVel = _tempXVel;
 
 	updPosVars();
-	show_debug_message(x);
 }
 	
 	
@@ -189,12 +188,18 @@ function updGrav(_grav, axis, _clamp = 1000000) {
 		if abs(_clamp) >  abs(_nextXVel) {
 			persistVar.xVel = _nextXVel;
 		}
+		else {
+			persistVar.xVel = _clamp;
+		}
 	}
 	else {
 		// Only needs to be below the clamp if it's negative
 		var _nextYVel = persistVar.yVel - _grav;
 		if abs(_clamp) >  abs(_nextYVel) or sign(_nextYVel) == -1 {
 			persistVar.yVel = _nextYVel;
+		}
+		else {
+			persistVar.yVel = _clamp;
 		}
 	}
 }

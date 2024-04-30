@@ -1,11 +1,14 @@
 function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "InAir";
-	static num = SH.inAir;
+	static num = SH.INAIR;
 	static stateSEnter = sEnter;
 	grav = _data[0];
 	coyoteMax = _data[1];
 	yVelMax = _data[2];
+	coyoteDistMax = _data[3];
 	coyoteBuffer = 0;
+	coyoteDist = 0;
+	isOverMaxDist = false;
 	
 	static sEnter = function(_data) {		
 		// yVel only becomes 0 if we've been grounded, and then transitioned to the inAir state
@@ -18,7 +21,22 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		}
 	}
 	
-	static updLogic = function() {	
+	static sExit = function() {
+		isOverMaxDist = false;
+		coyoteDist = 0;
+	}
+	
+	static updLogic = function() {
+		
+		if !isOverMaxDist {
+			if coyoteDist < coyoteDistMax {
+				coyoteDist += persistVar.xVel;
+			}
+			else {
+				isOverMaxDist = true
+			}
+		}
+		
 		// Update yVel
 		updGrav(getGravMulti() * grav, 1, yVelMax);
 			
@@ -47,16 +65,16 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	static checkIdleWalk2 = function() {
 		if persistVar.isBelow {
 			if inputHandler.xInputDir == 0 and persistVar.xVel == 0 {
-				stateMachine.requestChange(SH.idle, 2);
+				stateMachine.requestChange(SH.IDLE, 2);
 			} else {
-				stateMachine.requestChange(SH.walk, 2);
+				stateMachine.requestChange(SH.WALK, 2);
 			}
 		}
 	}
 	
 	static checkJump2 = function() {
-		if  !persistVar.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump {
-			stateMachine.requestChange(SH.jump, 2);
+		if  !persistVar.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump and coyoteDist < coyoteDistMax {
+			stateMachine.requestChange(SH.JUMP, 2);
 		}
 	}
 		
@@ -67,14 +85,14 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 			var _leftDiff = abs(inputHandler.surface.bbox_left) - abs(persistVar.x);
 			var _wallDir = ( abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			
-			stateMachine.requestChange(SH.climb, 2, [_wallDir]);
+			stateMachine.requestChange(SH.CLIMB, 2, [_wallDir]);
 		}
 	}
 	
 	static checkDash2 = function() {
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.dash, 2);
+			stateMachine.requestChange(SH.DASH, 2);
 		}
 	}
 	
@@ -102,12 +120,12 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		}
 		// The only other case is _yInputDir being 1 whilst you're going down or continuing a jump, 
 		// (not starting one, cuz that's handled by the jump state) but else is more optimal
-		else if _yVel < 28 {
+		else if _yVel < yVelMax {
 			if sign(_yVel) == -1 {
 				return 1;
 			}
 			else {
-				return 1.3;
+				return 1.1;
 			}
 		}
 		else {

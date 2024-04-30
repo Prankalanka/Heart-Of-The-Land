@@ -4,7 +4,7 @@ function CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = 
 
 function IdleCombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Idle Combat";
-	static num = SH.idleCombat;
+	static num = SH.IDLECOMBAT;
 	checkSetHeld = _data[0]; // Hopefully bound to entity
 	
 	static updLogic = function() {
@@ -24,7 +24,7 @@ function IdleCombatState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 
 function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : CombatState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Hold";
-	static num = SH.hold;
+	static num = SH.HOLD;
 	
 	held = undefined;
 	
@@ -60,18 +60,18 @@ function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 			aimProjectilePos();
 			
 			throwProjectile(); // Changes held's state
-			stateMachine.requestChange(SH.idleCombat, 0);
+			stateMachine.requestChange(SH.IDLECOMBAT, 0);
 		}
 	}
 	
 	static checkCancel = function() {
 		if inputHandler.holdCancel {
 			// Put in inventory once we implement it
-			stateMachine.requestChange(SH.idleCombat, 0);
+			stateMachine.requestChange(SH.IDLECOMBAT, 0);
 			
-			held.stateMachine.requestChange(SH.idleCombat, 0);
-			held.stateMachine.requestChange(SH.idle, 1);
-			held.stateMachine.requestChange(SH.idle, 2);
+			held.stateMachine.requestChange(SH.IDLECOMBAT, 0);
+			held.stateMachine.requestChange(SH.IDLE, 1);
+			held.stateMachine.requestChange(SH.IDLE, 2);
 		}
 	}
 	

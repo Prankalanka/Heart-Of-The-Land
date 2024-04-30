@@ -6,25 +6,31 @@ moveCamera(); // camera object
 execPipeLine();
 
 // Idle combat state
-if mouse_check_button(mb_left)  and attackCd
-{
-	attackExec(); // function belonging to attack combat state
-}
+//if mouse_check_button(mb_left)  and attackCd
+//{
+//	attackExec(); // function belonging to attack combat state
+//}
 
+array_push(xVelArray, persistVar.xVel);
 
 //DEBUGGING
 if  keyboard_check_pressed(ord("V")) {
 	show_debug_message(xVelArray);
 }
-//show_debug_message([
-//persistVar.xVel,
-//states[SH.walk].walkVel,
-//states[SH.walk].walkAccel
-//]);
+if  keyboard_check_pressed(ord("G")) {
+	x = initX;
+	y = initY;
+}
+show_debug_message([
+persistVar.xVel,
+states[SH.WALK].walkVel,
+states[SH.WALK].walkAccel,
+states[SH.WALK].accelledThisTurn,
+]);
 
-//show_debug_message([
+//show_debug_message(
 //persistVar.yVel
-//]);
+//);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);
