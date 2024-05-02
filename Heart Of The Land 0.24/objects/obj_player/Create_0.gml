@@ -5,13 +5,14 @@ var _walkVel = 0;
 var _fakeMaxSpeed = 11;
 var _walkVarA = 12;
 var _walkVarB = 2;
-var _walkAccel = 1.4;
+var _walkAccel = 2.4;
 var _decel = 0.94;
-var _walkAccelDef = 1.1;
-var _walkAccelMax = 4.5;
-var _walkVelMax = 28;
+var _walkAccelDef = 2.4;
+var _walkAccelMax = 4;
+var _walkVelMax = 32;
+var _walkDeltaAccel = 0.125;
 
-var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax, _walkVelMax];
+var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax, _walkVelMax, _walkDeltaAccel];
 #endregion
 
 #region Health State Setup (Make a health region eventually)
@@ -40,7 +41,7 @@ var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 // In Air State
 var _coyoteMax = 9;
 var  _yVelMax = 30;
-var _coyoteDistMax = 20;
+var _coyoteDistMax = 40;
 
 var _inAirData = [_grav, _coyoteMax, _yVelMax, _coyoteDistMax];
 var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
@@ -402,46 +403,11 @@ inputHandler = {
 	},
 	
 	dashInputDir : 0, // Ranges from -1 to 1 
-	dashBuffer : [0, 0], // Input Handler
-	dashBufferMax : 18, // Input Handler
 	checkDash : function() {
 		dashInputDir = 0;
 		
-		if (keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A"))) // and cooldown
-	    {
-	        // Reset the other buffer so that we don't dash if we're quickly changing directions
-	        dashBuffer[1] = 0;
-	        // If we press the key again whilst its buffer is above 0 we call stateTransition and switch states 
-	        if dashBuffer[0] > 0 {
-				dashInputDir  = 1;
-	        }
-	        else {
-	            // For the first frame a directional key is pressed, make the dash buffer for the key equal to 10
-	            dashBuffer[0] = dashBufferMax;
-	        }
-	        // If we don't press it decrement the key's buffer each frame until we reach 0
-	    } else {
-	        dashBuffer[0] -= 1;
-	    }
-	    if (keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D"))) {
-	        dashBuffer[0] = 0;
-	        if dashBuffer[1] > 0 {
-	            dashInputDir = -1;
-	        }
-	        else {
-	            dashBuffer[1] = dashBufferMax;
-	        }
-	    } else {
-	        dashBuffer[1] -= 1;
-	    }
-		
-		if  keyboard_check(vk_shift) {
-			if keyboard_check_pressed(vk_right) or keyboard_check_pressed(ord("D")) {
-				dashInputDir = -1;
-			}
-			if keyboard_check_pressed(vk_left) or keyboard_check_pressed(ord("A")) {
-				dashInputDir = 1;
-			}
+		if keyboard_check_pressed(vk_shift) {
+			dashInputDir = (other.persistVar.indexFacing == 0)? 1 : -1;
 		}
 	},
 	
@@ -772,8 +738,6 @@ initStates(_startingStates);
 // Make climbBox shorter from the bottom
 // Dashing changed slightly (equation changed but similar results) YAAAAAAAAAAAAAAAAAAAA
 // Dashing didn't change to inAir... had to go through jump to do that, fix YAAAAAAAAAAAAAAAAAAA
-
-
 
 
 // BUGS

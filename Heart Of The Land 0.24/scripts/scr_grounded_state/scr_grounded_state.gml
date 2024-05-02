@@ -102,11 +102,12 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	walkAccelDef = _data[6];
 	walkAccelMax = _data[7];
 	walkVelMax = _data[8];
+	walkDeltaAccel = _data[9];
 	xVelMax =  ((fakeMaxSpeed * power(walkVelMax, walkVarB)) / (power(walkVarA, walkVarB) + power(walkVelMax, walkVarB))) * sign(walkVelMax);
 	xVel = undefined;
 	xInputDir = 0;
 	walkInputDir = 0;
-	accelledThisTurn = undefined;
+	accelledThisTurn = false;
 	walkAnims = [anims[0], anims[1]];
 	idleAnims = [anims[2], anims[3]];
 	
@@ -121,6 +122,10 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		groundedUpdLogic(); // Update xInput
 		xVel = persistVar.xVel;
 		
+		if _prevXInputDir != xInputDir and walkAccel == walkAccelDef {
+			accelledThisTurn = false;
+		}
+		
 		// Only do when grounded (or when we're not calling the update function from a different state)
 		if inRegion[1] {
 			// Update xVel and X
@@ -133,10 +138,6 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 				updXVel();
 			}
 		}
-		
-		if _prevXInputDir != xInputDir {
-			accelledThisTurn = false;
-		}
 	}
 	
 	static getAnimEnter = function() {
@@ -147,7 +148,6 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	static getAnimExit = function() {
 		return [undefined, undefined, 1]; // Stop scaling based on horizontal speed
 	}
-	
 	
 	static getAnimUpd = function() {
 		// Change animation depending on if we're pressing anything and the speed is above a certain threshold
@@ -200,24 +200,24 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		
 		// If we're inputting a different direction than we're going 
 		// Or if we're not inputting a direction
-		if xInputDir != sign(walkVel + xInputDir) or xInputDir == 0 {
+		if xInputDir != sign(walkVel + walkAccel) or xInputDir == 0 {
 			walkInputDir = (xInputDir == 0)? sign(walkVel) * -1 : xInputDir; // Make dir the opposite sign of walkVel if inputDir is 0
 			if walkAccel == walkAccelDef {
 				// do this once per direction change accelledThisTurn
-				if !accelledThisTurn {
+				if !accelledThisTurn  {
 					walkAccel = walkAccelMax;
 					accelledThisTurn = true;
 				}
 			}			
-			if walkAccel - 0.35 >= walkAccelDef {
-				walkAccel -= 0.35;
+			if walkAccel - walkDeltaAccel >= walkAccelDef { // I like the range between 0.1 and 0.2
+				walkAccel -= walkDeltaAccel;
 			} 
 			else {
 				walkAccel = walkAccelDef;
 			}
 		} 
-		else if walkAccel - 0.35 >= walkAccelDef  {	
-			walkAccel -= 0.35;	
+		else if walkAccel - walkDeltaAccel >= walkAccelDef  {	
+			walkAccel -= walkDeltaAccel;	
 		}
 		else {
 			walkAccel = walkAccelDef;

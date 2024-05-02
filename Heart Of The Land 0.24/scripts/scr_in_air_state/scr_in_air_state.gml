@@ -27,10 +27,9 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	}
 	
 	static updLogic = function() {
-		
 		if !isOverMaxDist {
 			if coyoteDist < coyoteDistMax {
-				coyoteDist += persistVar.xVel;
+				coyoteDist += abs(persistVar.xVel);
 			}
 			else {
 				isOverMaxDist = true
@@ -74,6 +73,7 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	
 	static checkJump2 = function() {
 		if  !persistVar.isAbove and inputHandler.jumpInput and coyoteBuffer != 0 and inputHandler.spaceReleasedSinceJump and coyoteDist < coyoteDistMax {
+			show_debug_message([coyoteDist]);
 			stateMachine.requestChange(SH.JUMP, 2);
 		}
 	}

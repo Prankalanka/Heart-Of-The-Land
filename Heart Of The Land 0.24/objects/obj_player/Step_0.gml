@@ -25,7 +25,7 @@ show_debug_message([
 persistVar.xVel,
 states[SH.WALK].walkVel,
 states[SH.WALK].walkAccel,
-states[SH.WALK].accelledThisTurn,
+states[SH.WALK].accelledThisTurn
 ]);
 
 //show_debug_message(

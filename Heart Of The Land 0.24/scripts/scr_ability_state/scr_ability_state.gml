@@ -83,7 +83,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	
 	static sEnter = function(_data = undefined) {	
 		// Update dir
-		dir = inputHandler.xInputDir;
+		dir = inputHandler.dashInputDir;
 		
 		// Reset dashFtame
 		dashFrame = 0;
@@ -100,7 +100,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	    // Start at 1 cuz 0 makes xVel equal 0
 	    dashFrame += 1;
 		
-		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 5 * dir) * 0.85;
+		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 6.43 * dir) * 0.85;
 		
 	    if dashFrame == 12 {
 			isAbilityDone = true;
@@ -162,6 +162,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	checkChanges = function() {
 		checkWalk12();
 		checkJump2();
+		checkInAir2();
 		checkClimb12();
 		checkAbilityDone12();
 	}
