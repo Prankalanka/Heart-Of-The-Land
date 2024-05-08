@@ -80,6 +80,9 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	dir = 0;
 	dashFrame = 0;
 	isAbilityDone = false;
+	if _data != false {
+		dashDuration = _data[0];
+	}
 	
 	static sEnter = function(_data = undefined) {	
 		// Update dir
@@ -96,13 +99,13 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 		
 	static updLogic = function() {
-		 // Increment to move along the graph
+		// Increment to move along the graph
 	    // Start at 1 cuz 0 makes xVel equal 0
 	    dashFrame += 1;
 		
 		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 6.43 * dir) * 0.85;
 		
-	    if dashFrame == 12 {
+	    if dashFrame == dashDuration {
 			isAbilityDone = true;
 	    }
 	}
@@ -114,7 +117,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static checkWalk12 = function() {
-		if dashFrame == 15 and abs(persistVar.xVel) >= persistVar.xVelMax {
+		if dashFrame == dashDuration and abs(persistVar.xVel) >= persistVar.xVelMax {
 			if inRegion[1] {
 				stateMachine.requestChange(SH.WALK, 1);
 			}
@@ -166,6 +169,45 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		checkClimb12();
 		checkAbilityDone12();
 	}
+}
+
+function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+	static name = "Air Dash";
+	static num = SH.AIRDASH;
+	peak = _data[0];
+	framesToPeak = _data[1];
+	initYVel =_data[2];
+	grav = _data[3];
+	dashDuration = _data[4];
+	// Has properties of dash state
+
+	static updLogic = function() {
+		// Incremented until we reach duration and then exit state
+	    dashFrame += 1;
+		
+		// Set vel
+		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 4 * dir) * 0.85;
+		if inRegion[2] {persistVar.yVel = initYVel;}
+		
+	    if dashFrame == dashDuration {
+			isAbilityDone = true;
+	    }
+	}
+	
+	// airDash state gives away control of yVel after one frame since it can't apply gravity
+	static checkInAir2 = function() {
+		if  dashFrame >= 1 {
+			stateMachine.requestChange(SH.INAIR, 2, [grav]);
+		} 
+	}
+	
+	checkChanges = function() {
+		checkWalk12();
+		checkInAir2();
+		checkClimb12();
+		checkAbilityDone12();
+	}
+	
 }
 
 function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {

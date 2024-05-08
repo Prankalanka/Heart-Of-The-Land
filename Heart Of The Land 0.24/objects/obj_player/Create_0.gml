@@ -41,7 +41,7 @@ var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 // In Air State
 var _coyoteMax = 9;
 var  _yVelMax = 30;
-var _coyoteDistMax = 40;
+var _coyoteDistMax = 25;
 
 var _inAirData = [_grav, _coyoteMax, _yVelMax, _coyoteDistMax];
 var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
@@ -49,8 +49,22 @@ var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
 
 #region Dash State Setup
 var _dashAnims = [spr_idle_right, spr_idle_left];
+
+var _dashDashDuration = 12;
+
+var _dashData = [_dashDashDuration];
 #endregion
 
+#region Air Dash State Setup
+var _aDPeak = -100;
+var _aDFramesToPeak = 12;
+var _aDInitYVel = (2 * _aDPeak) / _aDFramesToPeak + _aDPeak/sqr(_aDFramesToPeak);
+var _aDGrav = (2 * _aDPeak) / sqr(_aDFramesToPeak); // in Air State also
+var _aDDashDuration = 12;
+
+var _airDashData = [_aDPeak, _aDFramesToPeak, _aDInitYVel, _aDGrav, _aDDashDuration];
+ #endregion
+ 
 #region Swing State Setup
 // Only needed inside the swing state except for collision (swing-exclusive collide function? can be done through polymorphism)
 swing = undefined;
@@ -131,17 +145,6 @@ var _checkSetHeld = function() {
 }
 
 var _idleCombatData = [_checkSetHeld];
-#endregion
-
-#region Camera Object Setup Eventually
-// Should be in camera object
-targetX = x - camera_get_view_width(view_camera[0]) / 2;
-targetY = y - 1000;
-targetX = lerp(targetX, mouse_x, 0.4);
-targetY = lerp(targetY, mouse_y, 0.4);
-
-camX = lerp(camera_get_view_x(view_camera[0]), targetX, 0.3);
-camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.3);
 #endregion
 
 #region Old Functions
@@ -319,7 +322,6 @@ function attackExec() {
 }
 
 function moveCamera() {
-	
 	
     targetX = x - camera_get_view_width(view_camera[0]) / 1.75;
     targetY = y - camera_get_view_height(view_camera[0]) / 1.25;
@@ -517,12 +519,14 @@ states[SH.IDLE] = new IdleState(persistVar, stateMachine, inputHandler, _idleAni
 states[SH.WALK] = new WalkState(persistVar, stateMachine, inputHandler, _walkAnims, _walkData);
 states[SH.INAIR] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
 states[SH.JUMP] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
-states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims); 
+states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims, _dashData); 
 states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
 states[SH.IDLECOMBAT] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
 states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
 states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
 states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
+states[SH.AIRDASH] = new AirDashState(persistVar, stateMachine, inputHandler, _inAirAnims, _airDashData);
+
 #region State Functions
 /// In its own function so states don't have to be defined when we create the stateMachine.
 /// Sets activeStates to arguments, enters and regions the activeStates, and sets prioState
@@ -758,8 +762,9 @@ initStates(_startingStates);
 // WE ARE MOVING STATE SPECIFIC FUNCTIONS AND VARIABLES TO THE STATE YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 // BIG RESTRUCTURE LIMIT THE INPUT AND OUTPUT OF STATES, as part of the updLogic pipeline, get the user input, then based on that user input take in contextInput that we might need YAAAAAAAAAAAAAA
 // Put the vars of the inputHandler that aren't functions into a 2d array of states and their related vars IM GONNA FOCUS ON ADDING AND IMPROVING FEATURES FOR A WHILE
-// Get rid of tempVar
+// Get rid of tempVar YAAAAAAAAAAAAAAAAAAAAAA
 // Move some check functions to the base entity state
 // FInd better name for checkClimbCont, and the userinput function checkClimb
 // Give entity base state the changeState func, and only take reference to the two stateMachine arrays
+// Turn persistVar into an enum indexed array, like we did with read and write var
 

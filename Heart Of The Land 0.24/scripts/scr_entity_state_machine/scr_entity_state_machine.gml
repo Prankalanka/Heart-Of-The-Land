@@ -5,6 +5,8 @@ enum SH {
 	WALK,
 	DASH,
 	
+	AIRDASH,
+	
 	// Region 2 States
 	INAIR,
 	CLIMB,
@@ -19,7 +21,6 @@ enum SH {
 	HELD,
 }
 
-
 /// Stores state changes and their data
 function EntityStateMachine() constructor {
 	stateChanges = [[], [], []]; // An array per region
@@ -30,6 +31,8 @@ function EntityStateMachine() constructor {
 	"Idle",
 	"Walk",
 	"Dash",
+	
+	"Air Dash",
 	
 	// Region 2 States
 	"InAir",

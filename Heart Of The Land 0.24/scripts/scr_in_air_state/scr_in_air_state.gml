@@ -2,13 +2,14 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	static name = "InAir";
 	static num = SH.INAIR;
 	static stateSEnter = sEnter;
-	grav = _data[0];
+	defGrav = _data[0];
 	coyoteMax = _data[1];
 	yVelMax = _data[2];
 	coyoteDistMax = _data[3];
 	coyoteBuffer = 0;
 	coyoteDist = 0;
 	isOverMaxDist = false;
+	grav  = defGrav;
 	
 	static sEnter = function(_data) {		
 		// yVel only becomes 0 if we've been grounded, and then transitioned to the inAir state
@@ -18,6 +19,15 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		}
 		else {
 			coyoteBuffer = 0;
+		}
+		
+		// We might switch gravity if we're not in the ability anymore
+		// But this'll do for now
+		if _data != undefined {
+			grav = _data[0];
+		}
+		else {
+			grav = defGrav;
 		}
 	}
 	
@@ -89,10 +99,10 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		}
 	}
 	
-	static checkDash2 = function() {
+	static checkAirDash2 = function() {
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.DASH, 2);
+			stateMachine.requestChange(SH.AIRDASH, 2);
 		}
 	}
 	
@@ -100,6 +110,7 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		checkIdleWalk2();
 		checkJump2();
 		checkClimb2();
+		checkAirDash2();
 	}
 
 	/// Decrements the coyote buffer if it is not 0.

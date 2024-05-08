@@ -11,7 +11,12 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 	static checkGrounded1 =  function() { // Turn changes into functions
 		// Changes to Dash State if there's input
 		if inputHandler.dashInputDir != 0 {
-			stateMachine.requestChange(SH.DASH, 1);
+			if inRegion[2] {
+				stateMachine.requestChange(SH.DASH, 1);
+			}
+			else {
+				stateMachine.requestChange(SH.AIRDASH, 1);
+			}
 		}
 		if !persistVar.isBelow and inputHandler.climbHeld and inputHandler.surface != undefined and inputHandler.cdClimb == 0 {
 			// Check if our x value is closer to the left or right bbox boundary

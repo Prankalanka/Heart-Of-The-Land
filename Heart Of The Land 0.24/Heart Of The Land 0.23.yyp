@@ -48,7 +48,7 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.2.0.132",
+    "IDEVersion":"2024.4.0.137",
   },
   "name":"Heart Of The Land 0.23",
   "resources":[
@@ -57,6 +57,8 @@
     {"id":{"name":"obj_bat","path":"objects/obj_bat/obj_bat.yy",},},
     {"id":{"name":"obj_bite","path":"objects/obj_bite/obj_bite.yy",},},
     {"id":{"name":"obj_block","path":"objects/obj_block/obj_block.yy",},},
+    {"id":{"name":"obj_camera_control","path":"objects/obj_camera_control/obj_camera_control.yy",},},
+    {"id":{"name":"obj_climb_empty","path":"objects/obj_climb_empty/obj_climb_empty.yy",},},
     {"id":{"name":"obj_climb","path":"objects/obj_climb/obj_climb.yy",},},
     {"id":{"name":"obj_collidable","path":"objects/obj_collidable/obj_collidable.yy",},},
     {"id":{"name":"obj_destroyer","path":"objects/obj_destroyer/obj_destroyer.yy",},},
@@ -69,7 +71,6 @@
     {"id":{"name":"obj_swing","path":"objects/obj_swing/obj_swing.yy",},},
     {"id":{"name":"obj_tree","path":"objects/obj_tree/obj_tree.yy",},},
     {"id":{"name":"obj_WOLF","path":"objects/obj_WOLF/obj_WOLF.yy",},},
-    {"id":{"name":"obj_climb_empty","path":"objects/obj_climb_empty/obj_climb_empty.yy",},},
     {"id":{"name":"par_throwable","path":"objects/par_throwable/par_throwable.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"id":{"name":"Room13","path":"rooms/Room13/Room13.yy",},},

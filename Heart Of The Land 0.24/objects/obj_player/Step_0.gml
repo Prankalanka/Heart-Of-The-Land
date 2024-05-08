@@ -21,16 +21,18 @@ if  keyboard_check_pressed(ord("G")) {
 	x = initX;
 	y = initY;
 }
-show_debug_message([
-persistVar.xVel,
-states[SH.WALK].walkVel,
-states[SH.WALK].walkAccel,
-states[SH.WALK].accelledThisTurn
-]);
+//show_debug_message([
+//persistVar.xVel,
+//states[SH.WALK].walkVel,
+//states[SH.WALK].walkAccel,
+//states[SH.WALK].accelledThisTurn
+//]);
 
-//show_debug_message(
-//persistVar.yVel
-//);
+show_debug_message(
+[persistVar.xVel,
+persistVar.yVel, 
+]
+);
 //show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);
