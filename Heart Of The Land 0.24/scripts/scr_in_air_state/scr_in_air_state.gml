@@ -101,7 +101,7 @@ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 	
 	static checkAirDash2 = function() {
 		// Changes to Dash State if there's input
-		if inputHandler.dashInputDir != 0 {
+		if inputHandler.dashInputDir != 0 and inputHandler.groundedAfterAirDash {
 			stateMachine.requestChange(SH.AIRDASH, 2);
 		}
 	}

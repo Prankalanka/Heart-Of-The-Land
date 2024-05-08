@@ -323,20 +323,23 @@ function attackExec() {
 
 function moveCamera() {
 	
-    targetX = x - camera_get_view_width(view_camera[0]) / 1.75;
-    targetY = y - camera_get_view_height(view_camera[0]) / 1.25;
+
+}
+#endregion
+
+#region Player Camera Control 
+getNextCamPos = function() {
+	var _xCamOffset = 2;
+	var _yCamOffset = 1.25;
 	
-	// Lerp between mouse and player
-   targetX = lerp(targetX, mouse_x, 0.2);
-   // targetY = lerp(targetY, mouse_y, 0.2);
+	// Offset camera to face toward direction we're facing
+	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
+	_xCamOffset += 0.75 * _dirFacing; // should make offset size variable
 
-    camX = lerp(camera_get_view_x(view_camera[0]), targetX, 0.075);
-    camY = lerp(camera_get_view_y(view_camera[0]), targetY, 0.15);
-
+	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
+	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
 	
-
-
-    camera_set_view_pos(view_camera[0], camX, camY);
+	return [targetX, targetY];
 }
 #endregion
 
@@ -404,12 +407,17 @@ inputHandler = {
 		}
 	},
 	
-	dashInputDir : 0, // Ranges from -1 to 1 
+	dashInputDir : 0, // Ranges from -1 to 1
+	groundedAfterAirDash : true,
 	checkDash : function() {
 		dashInputDir = 0;
 		
 		if keyboard_check_pressed(vk_shift) {
 			dashInputDir = (other.persistVar.indexFacing == 0)? 1 : -1;
+		}
+		
+		if other.persistVar.isBelow {
+			groundedAfterAirDash = true;
 		}
 	},
 	

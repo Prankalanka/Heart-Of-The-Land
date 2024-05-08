@@ -14,7 +14,7 @@ function GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 			if inRegion[2] {
 				stateMachine.requestChange(SH.DASH, 1);
 			}
-			else {
+			else if inputHandler.groundedAfterAirDash {
 				stateMachine.requestChange(SH.AIRDASH, 1);
 			}
 		}

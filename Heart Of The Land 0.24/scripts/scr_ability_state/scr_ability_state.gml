@@ -117,7 +117,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static checkWalk12 = function() {
-		if dashFrame == dashDuration and abs(persistVar.xVel) >= persistVar.xVelMax {
+		if dashFrame == dashDuration and abs(persistVar.xVel) <= persistVar.xVelMax {
 			if inRegion[1] {
 				stateMachine.requestChange(SH.WALK, 1);
 			}
@@ -181,6 +181,18 @@ function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 	dashDuration = _data[4];
 	// Has properties of dash state
 
+	static sEnter = function() {
+		// Update dir
+		dir = inputHandler.dashInputDir;
+		
+		// Reset dashFtame
+		dashFrame = 0;
+		
+		isAbilityDone = false;
+		
+		inputHandler.groundedAfterAirDash = false;
+	}	
+	
 	static updLogic = function() {
 		// Incremented until we reach duration and then exit state
 	    dashFrame += 1;
