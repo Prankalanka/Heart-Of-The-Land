@@ -28,12 +28,12 @@ if  keyboard_check_pressed(ord("G")) {
 //states[SH.WALK].accelledThisTurn
 //]);
 
-show_debug_message(
-[persistVar.xVel,
-persistVar.yVel, 
-]
-);
-//show_debug_message(yVel); 
+//show_debug_message(
+//[persistVar.xVel,
+//persistVar.yVel, 
+//]
+//);
+////show_debug_message(yVel); 
 //show_debug_message(isBelow);
 //show_debug_message(yDir);
 //show_debug_message(isJumping);

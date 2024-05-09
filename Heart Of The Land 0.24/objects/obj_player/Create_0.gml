@@ -334,9 +334,10 @@ getNextCamPos = function() {
 	
 	// Offset camera to face toward direction we're facing
 	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
-	_xCamOffset += 0.75 * _dirFacing; // should make offset size variable
+	
 
 	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
+	targetX += camera_get_view_width(view_camera[0]) / 6.7 * _dirFacing;
 	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
 	
 	return [targetX, targetY];
