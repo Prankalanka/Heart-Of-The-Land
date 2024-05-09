@@ -4,8 +4,10 @@ enum CAM_MANS {
 
 camMan = CAM_MANS.PLYR;
 
-camX = 0;
-camY = 0;
+xCam = 0;
+yCam = 0;
+
+xCamClamp = 125;
 
 xMidOffset = camera_get_view_width(view_camera[0]) / 2 ;
 yMidOffset = camera_get_view_width(view_camera[0]) / 2;

@@ -39,7 +39,7 @@ var _initJumpVel = (2 * _peak) / _framesToPeak + _peak/sqr(_framesToPeak);
 var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 
 // In Air State
-var _coyoteMax = 9;
+var _coyoteMax = 90;
 var  _yVelMax = 30;
 var _coyoteDistMax = 25;
 
@@ -59,7 +59,7 @@ var _dashData = [_dashDashDuration];
 var _aDPeak = -100;
 var _aDFramesToPeak = 12;
 var _aDInitYVel = (2 * _aDPeak) / _aDFramesToPeak + _aDPeak/sqr(_aDFramesToPeak);
-var _aDGrav = (2 * _aDPeak) / sqr(_aDFramesToPeak); // in Air State also
+var _aDGrav = _grav;
 var _aDDashDuration = 12;
 
 var _airDashData = [_aDPeak, _aDFramesToPeak, _aDInitYVel, _aDGrav, _aDDashDuration];
@@ -329,15 +329,15 @@ function moveCamera() {
 
 #region Player Camera Control 
 getNextCamPos = function() {
-	var _xCamOffset = 2;
+	var _Offset = 2;
 	var _yCamOffset = 1.25;
 	
 	// Offset camera to face toward direction we're facing
 	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
 	
 
-	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
-	targetX += camera_get_view_width(view_camera[0]) / 6.7 * _dirFacing;
+	targetX = x - camera_get_view_width(view_camera[0]) / _Offset;
+	targetX += camera_get_view_width(view_camera[0]) / 6.7;
 	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
 	
 	return [targetX, targetY];

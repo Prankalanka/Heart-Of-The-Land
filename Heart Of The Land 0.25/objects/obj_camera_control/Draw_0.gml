@@ -1,3 +1,3 @@
 /// @description Insert description here
 // You can write your code in this editor
-draw_circle(camX + xMidOffset, camY + yMidOffset, 15, false);
+draw_circle(xCam + xMidOffset, yCam + yMidOffset, 15, false);

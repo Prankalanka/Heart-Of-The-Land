@@ -1,4 +1,4 @@
-function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+ function InAirState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : EntityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "InAir";
 	static num = SH.INAIR;
 	static stateSEnter = sEnter;
