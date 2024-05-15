@@ -25,8 +25,14 @@ lookAheadMax = (camera_get_view_width(view_camera[0]) / 12.25) * 1;
 lAAccel = 6.25;
 lADecel = 0.985;
 
+playerVar = undefined;
+
+getPlayerVars = function() {
+	playerVar = obj_player.persistVar;
+}
+
 // Returns the next smoothed value after the current value given
- smoothDamp = function(_current, _target, _currentVelocity, _smoothTime, _maxSpeed = 999999999999999999999999999999999999999999999999999999999999)
+ smoothDamp = function(_current, _target, _currentVelocity, _smoothTime, _maxSpeed = infinity)
 {
     // Based on Game Programming Gems 4 Chapter 1.10
     _smoothTime = max(0.0001, _smoothTime);

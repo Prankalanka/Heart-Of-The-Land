@@ -33,7 +33,6 @@ if _plyrXInputDir != 0 {
 	}
 }
 
-
 targetX += lookAheadDist;
 targetX += obj_player.persistVar.xVel * lAAccel; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
 

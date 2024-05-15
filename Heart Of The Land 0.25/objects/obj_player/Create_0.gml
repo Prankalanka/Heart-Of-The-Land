@@ -329,14 +329,14 @@ function moveCamera() {
 
 #region Player Camera Control 
 getNextCamPos = function() {
-	var _xCamOffset = 2;
-	var _yCamOffset = 1.6;
 	
 	// Offset camera to face toward direction we're facing
 	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
 	
 
 	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
+	
+	// Only change target y when our current y is diferent 
 	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
 	
 	inputHandler.checkWalk();
@@ -350,6 +350,9 @@ xVelArray = [];
 
 activeStates = undefined;
 prioState = undefined;
+
+xCamOffset = 2;
+yCamOffset = 1.3;
 
 canShowRequests = true;
 canShowStates = false;
