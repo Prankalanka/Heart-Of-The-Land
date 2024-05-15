@@ -41,7 +41,7 @@ var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 // In Air State
 var _coyoteMax = 90;
 var  _yVelMax = 30;
-var _coyoteDistMax = 25;
+var _coyoteDistMax = 40;
 
 var _inAirData = [_grav, _coyoteMax, _yVelMax, _coyoteDistMax];
 var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
@@ -329,18 +329,19 @@ function moveCamera() {
 
 #region Player Camera Control 
 getNextCamPos = function() {
-	var _Offset = 2;
-	var _yCamOffset = 1.25;
+	var _xCamOffset = 2;
+	var _yCamOffset = 1.6;
 	
 	// Offset camera to face toward direction we're facing
 	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
 	
 
-	targetX = x - camera_get_view_width(view_camera[0]) / _Offset;
-	targetX += camera_get_view_width(view_camera[0]) / 6.7;
+	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
 	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
 	
-	return [targetX, targetY];
+	inputHandler.checkWalk();
+	
+	return [targetX, targetY, x, y, inputHandler.xInputDir];
 }
 #endregion
 

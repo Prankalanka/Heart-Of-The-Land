@@ -1,24 +1,48 @@
-var _targetX = 0;
-var _targetY = 0;
+var _prevXCam = xCam;
+var _prevYCam = yCam;
+var _prevXVel = xVel;
+var _prevYVel = yVel;
+
+var _plyrX = 0;
+var _plyrY = 0;
+var _plyrXInputDir = 0;
 
 switch camMan {
 	case CAM_MANS.PLYR:
-		var _targetPos = obj_player.getNextCamPos();
-		_targetX = _targetPos[0];
-		_targetY = _targetPos[1];
+		var _plyrData = obj_player.getNextCamPos();
+		targetX = _plyrData[0];
+		targetY = _plyrData[1];
+		_plyrX = _plyrData[2];
+		_plyrY = _plyrData[3];
+		_plyrXInputDir = _plyrData[4];
+		
 		break
 } 
 
-var _nextXCam = lerp(camera_get_view_x(view_camera[0]), _targetX, 0.025 + abs(obj_player.persistVar.xVel/275));
-var _nextYCam = lerp(camera_get_view_y(view_camera[0]), _targetY, 0.15);
+// We stick to the same position if we're not inputting anything
+if _plyrXInputDir != 0 {
+	// Smoothly transition to next lookAhead value
+	var _nextLookAheadDist = (lookAheadDist + lAAccel * _plyrXInputDir) * lADecel;
 
-var _xCamPlyrDiff = abs(abs((_nextXCam + xMidOffset)) - abs(obj_player.x));
+	// Clamp lookAhead value
+	if abs(_nextLookAheadDist) < lookAheadMax {
+		lookAheadDist = _nextLookAheadDist;
+	}
+	else { 
+		lookAheadDist = lookAheadMax * _plyrXInputDir;
+	}
+}
 
 
-xCam = _nextXCam;
-yCam = _nextYCam;
+targetX += lookAheadDist;
+targetX += obj_player.persistVar.xVel * lAAccel; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
+
+xCam = smoothDamp(xCam, targetX, xVel, 8);
+yCam = smoothDamp(yCam, targetY, yVel, 1, xVelMax);
 
 camera_set_view_pos(view_camera[0], xCam, yCam);
 
-_xCamPlyrDiff = (xCam + xMidOffset) - obj_player.x;
-show_debug_message(_xCamPlyrDiff);
+show_debug_message([lookAheadDist, _plyrXInputDir, lAAccel]);
+
+xVel = xCam - _prevXCam;
+yVel = yCam - _prevYCam;

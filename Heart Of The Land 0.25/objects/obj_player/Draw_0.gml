@@ -24,5 +24,3 @@ draw_rectangle(_extBox[0], _extBox[1], _extBox[2], _extBox[3], true);
 
 
 
-
-
