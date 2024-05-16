@@ -338,20 +338,21 @@ getNextCamPos = function() {
 	
 	var _nextYCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
 	
-	// If we're not below our lastGroundedY
-	if abs(y - lastGroundedY) > 1 and sign(y - lastGroundedY) == -1 {
+	// If we're above our lastGroundedY
+	if sign(y - lastGroundedY) == -1 or y == lastGroundedY {
 		// Only change target y when our current y is above a certain limit of our lastGroundedY
 		// Change to the groundedY's camera position if not
 		// SHOULD GET A POINT WHERE WE START SMOOTHING TOWARDS THE THRESHOLD POINT
-		if abs(y - lastGroundedY) >= maxHeightFromGround {
-			yCamTarget = _nextYCamTarget;
+		if abs(y - lastGroundedY) >= maxHeightFromGround/1.8 {
+			yCamTarget = _nextYCamTarget + maxHeightFromGround/4;
 		}
 		else {
 			yCamTarget = lastGroundedY - camera_get_view_height(view_camera[0]) / yCamOffset;
 		}
 	} 
 	else if sign(y - lastGroundedY) == 1 { // Make the camera follow quicker if we are below
-		_yCamSmoothTime = 2;
+		_yCamSmoothTime = 2; // Speeds up when we haven't caught up with the players new ground position
+		// This causes it to be quite jumpy, gonna see what smoothing towards the threshold does
 		yCamTarget = _nextYCamTarget;
 	}
 	
