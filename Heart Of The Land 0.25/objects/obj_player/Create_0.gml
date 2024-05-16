@@ -329,33 +329,59 @@ function moveCamera() {
 
 #region Player Camera Control 
 getNextCamPos = function() {
+	var _yCamSmoothTime = 14;
 	
 	// Offset camera to face toward direction we're facing
 	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
 	
-
-	targetX = x - camera_get_view_width(view_camera[0]) / _xCamOffset;
+	xCamTarget = x - camera_get_view_width(view_camera[0]) / xCamOffset;
 	
-	// Only change target y when our current y is diferent 
-	targetY = y - camera_get_view_height(view_camera[0]) / _yCamOffset;
+	var _nextYCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
 	
+	// If we're not below our lastGroundedY
+	if abs(y - lastGroundedY) > 1 and sign(y - lastGroundedY) == -1 {
+		// Only change target y when our current y is above a certain limit of our lastGroundedY
+		// Change to the groundedY's camera position if not
+		// SHOULD GET A POINT WHERE WE START SMOOTHING TOWARDS THE THRESHOLD POINT
+		if abs(y - lastGroundedY) >= maxHeightFromGround {
+			yCamTarget = _nextYCamTarget;
+		}
+		else {
+			yCamTarget = lastGroundedY - camera_get_view_height(view_camera[0]) / yCamOffset;
+		}
+	} 
+	else if sign(y - lastGroundedY) == 1 { // Make the camera follow quicker if we are below
+		_yCamSmoothTime = 2;
+		yCamTarget = _nextYCamTarget;
+	}
+	
+	show_debug_message([y, lastGroundedY, y - lastGroundedY])
 	inputHandler.checkWalk();
 	
-	return [targetX, targetY, x, y, inputHandler.xInputDir];
+	return [xCamTarget, yCamTarget, x, y, inputHandler.xInputDir, persistVar.xVel, _yCamSmoothTime];
 }
 #endregion
 
 #region Context Setup (Only the context uses these)
-xVelArray = [];
-
+// State Machine
 activeStates = undefined;
 prioState = undefined;
 
+// Camera
 xCamOffset = 2;
 yCamOffset = 1.3;
 
+xCamTarget = x;
+yCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
+
+lastGroundedY = y;
+maxHeightFromGround = 300;
+
+// Debug
 canShowRequests = true;
 canShowStates = false;
+
+xVelArray = [];
 
 initX = x;
 initY = y;
@@ -560,6 +586,10 @@ initStates = function(_startingStates)
 /// Checks what changes the current states are requesting, changes the requesting states and possibly the priority state depending on hierarchy. 
 /// Does the updLogic for each state, and finally does the getAnimUpd function for the priority state.
 execPipeLine = function() {
+	if persistVar.isBelow {
+		lastGroundedY = y;
+	}
+	
 	inputHandler.checkUserInputs();
 	inputHandler.checkContextInputs();
 	

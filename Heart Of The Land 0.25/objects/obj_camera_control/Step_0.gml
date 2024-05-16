@@ -6,6 +6,8 @@ var _prevYVel = yVel;
 var _plyrX = 0;
 var _plyrY = 0;
 var _plyrXInputDir = 0;
+var _plyrXVel = 0;
+var _ySmoothTime = 0;
 
 switch camMan {
 	case CAM_MANS.PLYR:
@@ -15,6 +17,8 @@ switch camMan {
 		_plyrX = _plyrData[2];
 		_plyrY = _plyrData[3];
 		_plyrXInputDir = _plyrData[4];
+		_plyrXVel = _plyrData[5];
+		_ySmoothTime = _plyrData[6];
 		
 		break
 } 
@@ -34,14 +38,15 @@ if _plyrXInputDir != 0 {
 }
 
 targetX += lookAheadDist;
-targetX += obj_player.persistVar.xVel * lAAccel; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
+targetX += _plyrXVel * lAAccel; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
 
 xCam = smoothDamp(xCam, targetX, xVel, 8);
-yCam = smoothDamp(yCam, targetY, yVel, 1, xVelMax);
+yCam = smoothDamp(yCam, targetY, yVel, _ySmoothTime, xVelMax);
 
 camera_set_view_pos(view_camera[0], xCam, yCam);
 
-show_debug_message([lookAheadDist, _plyrXInputDir, lAAccel]);
+//show_debug_message([lookAheadDist, _plyrXInputDir, lAAccel]);
+show_debug_message([_ySmoothTime]);
 
 xVel = xCam - _prevXCam;
 yVel = yCam - _prevYCam;
