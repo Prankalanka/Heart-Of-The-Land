@@ -38,15 +38,18 @@ if _plyrXInputDir != 0 {
 }
 
 targetX += lookAheadDist;
-targetX += _plyrXVel * lAAccel; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
+targetX += _plyrXVel*8// Look ahead of velocity as well (multiplied by that because I randomly found out it works)
 
-xCam = smoothDamp(xCam, targetX, xVel, 8);
-yCam = smoothDamp(yCam, targetY, yVel, _ySmoothTime, xVelMax);
+
+xCam = smoothDamp(xCam, targetX, xVel, 8); 
+yCam = smoothDamp(yCam, targetY, yVel, _ySmoothTime);
+
 
 camera_set_view_pos(view_camera[0], xCam, yCam);
 
 //show_debug_message([lookAheadDist, _plyrXInputDir, lAAccel]);
-show_debug_message([_ySmoothTime]);
+//show_debug_message([_ySmoothTime]);
+//show_debug_message([_plyrY, yCam, _plyrY - yCam, camera_get_view_height(view_camera[0])/1.3]);
 
 xVel = xCam - _prevXCam;
 yVel = yCam - _prevYCam;

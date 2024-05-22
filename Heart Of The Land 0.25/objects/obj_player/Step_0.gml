@@ -1,8 +1,6 @@
 // If we're dead we shouldn't do anything that frame
 checkHp(); // player health state
 
-moveCamera(); // camera object
-
 execPipeLine();
 
 // Idle combat state

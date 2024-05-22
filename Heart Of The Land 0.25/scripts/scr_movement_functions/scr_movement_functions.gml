@@ -121,17 +121,20 @@ function checkStuck() {
 		// Turn negative if negative value matches the minimum value
 		if _smolDirY == _nYLength {
 			_smolDirY = _smolDirY * -1;
-		} else if _smolDirX == __nXLength {
+		}
+		if _smolDirX == __nXLength {
 			_smolDirX = _smolDirX * -1;
 		}
 
 		// Update either x or y depending on which has the smallest ray
 		if abs(_smolDirX) < abs(_smolDirY) {
+			show_debug_message([_smolDirX, x]);
 			x += _smolDirX;
-			show_debug_message(_smolDirX);
+			show_debug_message(x);
 		} else {
+			show_debug_message([_smolDirY, y]);
 			y += _smolDirY;
-			show_debug_message(_smolDirY);
+			show_debug_message(y);
 		}
 	}
 	updPosVars();
@@ -202,4 +205,34 @@ function updGrav(_grav, axis, _clamp = 1000000) {
 			persistVar.yVel = _clamp;
 		}
 	}
+}
+
+// Returns the next smoothed value after the current value given
+ function smoothDamp(_current, _target, _currentVelocity, _smoothTime, _maxSpeed = infinity)
+{
+    // Based on Game Programming Gems 4 Chapter 1.10
+    _smoothTime = max(0.0001, _smoothTime);
+    var _omega = 2 / _smoothTime;
+
+    var _exponent = 1/ (1 + _omega + 0.48 * _omega * _omega + 0.235 * _omega * _omega * _omega);
+    var _change = _current - _target;
+    var _originalTo = _target;
+
+    // Clamp maximum speed
+    var _maxChange = _maxSpeed * _smoothTime;
+    _change = clamp(_change, -_maxChange, _maxChange);
+    _target = _current - _change;
+
+    var _temp = (_currentVelocity + _omega * _change);
+    _currentVelocity = (_currentVelocity - _omega * _temp) * _exponent;
+    var _output = _target + (_change + _temp) * _exponent;
+
+    // Prevent overshooting
+    if (_originalTo - _current > 0.0 and 0.0 == _output and _output > _originalTo)
+    {
+        _output = _originalTo;
+        _currentVelocity = (_output - _originalTo);
+    }
+
+    return _output;
 }

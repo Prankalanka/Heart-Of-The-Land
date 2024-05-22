@@ -2,7 +2,7 @@
 var _walkAnims = [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left];
 
 var _walkVel = 0;
-var _fakeMaxSpeed = 11;
+var _fakeMaxSpeed = 12.2;
 var _walkVarA = 12;
 var _walkVarB = 2;
 var _walkAccel = 2.4;
@@ -326,37 +326,46 @@ function moveCamera() {
 
 }
 #endregion
-
-#region Player Camera Control 
+ 
+ #region Player Camera Control 
 getNextCamPos = function() {
-	var _yCamSmoothTime = 14;
-	
-	// Offset camera to face toward direction we're facing
-	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
+	var _yCamSmoothTime = 0.25;
 	
 	xCamTarget = x - camera_get_view_width(view_camera[0]) / xCamOffset;
 	
-	var _nextYCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
+	//var _xPlyrCamPos = x - camera_get_view_width(view_camera[0]) / xCamOffset;
+	//var _xPlyrCamOffset = x - (camera_get_view_x(view_camera[0]) + xMidOffset);
+	 
+	var _plyrCamPos = y - camera_get_view_height(view_camera[0]) / yCamOffset;
+	var _yPlyrCamOffset = y - (camera_get_view_y(view_camera[0]) + yCamMid);
 	
-	// If we're above our lastGroundedY
-	if sign(y - lastGroundedY) == -1 or y == lastGroundedY {
-		// Only change target y when our current y is above a certain limit of our lastGroundedY
-		// Change to the groundedY's camera position if not
-		// SHOULD GET A POINT WHERE WE START SMOOTHING TOWARDS THE THRESHOLD POINT
-		if abs(y - lastGroundedY) >= maxHeightFromGround/1.8 {
-			yCamTarget = _nextYCamTarget + maxHeightFromGround/4;
+	//if abs(_xPlyrCamOffset) >= xMaxPlyrCamOffset {
+	//	xCamTarget = _xPlyrCamPos + xMaxPlyrCamOffset * sign(_xPlyrCamOffset) * -1;
+	//}
+	//var _yCamLerpVal = abs(_yPlyrCamOffset)/900;
+	
+	// Clamp to maximum boundary if exceeding it
+	if sign(_yPlyrCamOffset) == 1 {
+		smoothYVel = lerp(smoothYVel, _yPlyrCamOffset + 40  * _yCamSmoothTime * 1, 0.01);
+		var _nextYCamTarget = _plyrCamPos + smoothYVel;
+		yCamTarget = lerp(yCamTarget, _nextYCamTarget, 0.3)
+	 }
+	 	// Clamp to maximum boundary if exceeding it
+	else {
+		if abs(_yPlyrCamOffset) >= yMaxPlyrCamOffset {
+			yCamTarget = _plyrCamPos + yMaxPlyrCamOffset * sign(_yPlyrCamOffset) * -1;
 		}
-		else {
-			yCamTarget = lastGroundedY - camera_get_view_height(view_camera[0]) / yCamOffset;
-		}
-	} 
-	else if sign(y - lastGroundedY) == 1 { // Make the camera follow quicker if we are below
-		_yCamSmoothTime = 2; // Speeds up when we haven't caught up with the players new ground position
-		// This causes it to be quite jumpy, gonna see what smoothing towards the threshold does
-		yCamTarget = _nextYCamTarget;
+		smoothYVel = 0;
 	}
+	 
+	 
+	 if _yPlyrCamOffset != yCamTarget - _plyrCamPos
+	 {
+		 show_debug_message("h");
+	 }
+	 show_debug_message([yCamTarget, _plyrCamPos, persistVar.yVel * _yCamSmoothTime, yMaxPlyrCamOffset, _yPlyrCamOffset, yCamTarget - _plyrCamPos]);
 	
-	show_debug_message([y, lastGroundedY, y - lastGroundedY])
+	//show_debug_message([y, camera_get_view_y(view_camera[0]) + yCamMid, yPlyrCamOffset])
 	inputHandler.checkWalk();
 	
 	return [xCamTarget, yCamTarget, x, y, inputHandler.xInputDir, persistVar.xVel, _yCamSmoothTime];
@@ -368,20 +377,30 @@ getNextCamPos = function() {
 activeStates = undefined;
 prioState = undefined;
 
-// Camera
-xCamOffset = 2;
-yCamOffset = 1.3;
-
-xCamTarget = x;
-yCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
-
-lastGroundedY = y;
-maxHeightFromGround = 300;
-
-// Debug
 canShowRequests = true;
 canShowStates = false;
 
+// Camera
+xCamOffset = 2;
+yCamOffset = 2;
+
+xCamTarget = x - camera_get_view_width(view_camera[0]) / xCamOffset;
+yCamTarget = y - camera_get_view_height(view_camera[0]) / yCamOffset;
+ 
+yCamTargetVel = 0;
+
+xMidOffset = camera_get_view_width(view_camera[0]) / xCamOffset;
+yMidOffset = camera_get_view_height(view_camera[0]) / yCamOffset;
+
+xMaxPlyrCamOffset = camera_get_view_width(view_camera[0]) / 6.75;
+
+yCamMid = camera_get_view_height(view_camera[0]) / yCamOffset;
+yMaxPlyrCamOffset = camera_get_view_height(view_camera[0]) / 6.75;
+smoothYVel = 0;
+
+yCamLerpTarget = 0;
+
+// Debug
 xVelArray = [];
 
 initX = x;
@@ -608,13 +627,13 @@ execPipeLine = function() {
 	
 	updLogic();
 	
-	updPos();
-	
 	// Update animation once all the context has been decided
 	var _animData = prioState.getAnimUpd();
 	if _animData != undefined {
 		updAnim(_animData[0], _animData[1], _animData[2]);
 	}
+	
+	updPos();
 }
 
 // Run updLogic func for each state
