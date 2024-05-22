@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"very far back",
-    "path":"folders/Sprites/forest background/very far back.yy",
+    "path":"folders/Sprites/Image Background/very far back.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

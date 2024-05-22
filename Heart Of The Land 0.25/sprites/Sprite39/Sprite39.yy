@@ -44,8 +44,8 @@
   },
   "origin":0,
   "parent":{
-    "name":"Heart Of The Land 0.23",
-    "path":"Heart Of The Land 0.23.yyp",
+    "name":"Old Stuff",
+    "path":"folders/Sprites/Old Stuff.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

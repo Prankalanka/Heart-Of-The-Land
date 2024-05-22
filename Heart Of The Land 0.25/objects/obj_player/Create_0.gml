@@ -361,9 +361,9 @@ getNextCamPos = function() {
 	 
 	 if _yPlyrCamOffset != yCamTarget - _plyrCamPos
 	 {
-		 show_debug_message("h");
+		 //show_debug_message("h");
 	 }
-	 show_debug_message([yCamTarget, _plyrCamPos, persistVar.yVel * _yCamSmoothTime, yMaxPlyrCamOffset, _yPlyrCamOffset, yCamTarget - _plyrCamPos]);
+	 //show_debug_message([yCamTarget, _plyrCamPos, persistVar.yVel * _yCamSmoothTime, yMaxPlyrCamOffset, _yPlyrCamOffset, yCamTarget - _plyrCamPos]);
 	
 	//show_debug_message([y, camera_get_view_y(view_camera[0]) + yCamMid, yPlyrCamOffset])
 	inputHandler.checkWalk();

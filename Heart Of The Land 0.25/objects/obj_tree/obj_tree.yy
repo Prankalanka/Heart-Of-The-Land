@@ -6,8 +6,8 @@
   "name":"obj_tree",
   "overriddenProperties":[],
   "parent":{
-    "name":"Terrain",
-    "path":"folders/Objects/Terrain.yy",
+    "name":"Trees",
+    "path":"folders/Objects/Background Objects/Trees.yy",
   },
   "parentObjectId":null,
   "persistent":false,

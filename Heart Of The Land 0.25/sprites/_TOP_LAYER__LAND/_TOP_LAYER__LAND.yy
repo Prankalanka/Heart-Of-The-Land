@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"top layer",
-    "path":"folders/Sprites/forest background/top layer.yy",
+    "path":"folders/Sprites/Image Background/top layer.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

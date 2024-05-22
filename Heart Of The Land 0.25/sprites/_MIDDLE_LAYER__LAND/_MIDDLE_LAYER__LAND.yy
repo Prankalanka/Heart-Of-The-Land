@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"middle layer",
-    "path":"folders/Sprites/forest background/middle layer.yy",
+    "path":"folders/Sprites/Image Background/middle layer.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
