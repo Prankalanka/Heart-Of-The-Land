@@ -14,32 +14,9 @@ switch camMan {
 		var _plyrData = obj_player.getNextCamPos();
 		targetX = _plyrData[0];
 		targetY = _plyrData[1];
-		_plyrX = _plyrData[2];
-		_plyrY = _plyrData[3];
-		_plyrXInputDir = _plyrData[4];
-		_plyrXVel = _plyrData[5];
-		_ySmoothTime = _plyrData[6];
-		
+
 		break
 } 
-
-// We stick to the same position if we're not inputting anything
-if _plyrXInputDir != 0 {
-	// Smoothly transition to next lookAhead value
-	var _nextLookAheadDist = (lookAheadDist + lAAccel * _plyrXInputDir) * lADecel;
-
-	// Clamp lookAhead value
-	if abs(_nextLookAheadDist) < lookAheadMax {
-		lookAheadDist = _nextLookAheadDist;
-	}
-	else { 
-		lookAheadDist = lookAheadMax * _plyrXInputDir;
-	}
-}
-
-targetX += lookAheadDist;
-targetX += _plyrXVel*8// Look ahead of velocity as well (multiplied by that because I randomly found out it works)
-
 
 xCam = smoothDamp(xCam, targetX, xVel, 7); 
 yCam = smoothDamp(yCam, targetY, yVel, _ySmoothTime);

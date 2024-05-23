@@ -5,8 +5,8 @@
 // Keeping them instance variables for debug purposes
 
 // Generate Amount
-tuftAmountMin = 25;
-tuftAmountMax = 40;
+tuftAmountMin = 60;
+tuftAmountMax = 100;
 tuftAmount = irandom_range(tuftAmountMin, tuftAmountMax);
 
 // Generate Sprite Per Tuft
@@ -19,9 +19,9 @@ for (var i = 0; i < tuftAmount; i++) {
 } 
 
 // Generate Equal Offsets (hopefully maths right)
-tuftPosAmount = 15;
-tuftPosAmount += (tuftAmountMax - tuftPosAmount);
-tuftPosBoundsPercentage = 20;
+tuftPosAmount = tuftAmountMax;
+
+tuftPosBoundsPercentage = 40;
 tuftPosBoundsFraction = 100/tuftPosBoundsPercentage;
 spriteWidth = sprite_get_width(sprite_index);
 
@@ -36,11 +36,12 @@ for (var i = 0; i < tuftPosAmount; i++) {
 	tuftPosEqual[i] = tuftPosMin + tuftBoundsWidth/tuftPosAmount * i; 
 }
 
-for (var i = 0; i < tuftPosAmount - tuftAmount; i++) {
+for (var i = 0; array_length(tuftSprites) != array_length(tuftPosEqual); i++) {
 	var _index = irandom_range(0, array_length(tuftPosEqual));
 	array_delete(tuftPosEqual, _index, 1); // Hopefully stitches array back together
 	//show_debug_message(tuftPosEqual);
 }
+show_debug_message([array_length(tuftSprites), array_length(tuftPosEqual), tuftPosAmount, tuftAmount, "CCCCCC"]);
 
 // Generate Randomised Offset
 offsetClamp = 0;
@@ -56,62 +57,64 @@ bugPosArray = [];
 
 for (var i = 0; i < tuftAmount; i++) {
 	var _randOffset = 0;
-	if i == 0 {
-		_randOffset = random_range(offsetClamp, offsetMax);
+	var _minClamp = offsetMin;
+	var _maxClamp = offsetMax;
+	
+	// Ensure tufts are clamped within the range
+	if tuftPosEqual[i] + offsetMax > tuftPosMax {
+		_maxClamp = tuftPosEqual[i] + offsetMax - tuftPosMax;
 	}
-	else if i == tuftAmount-1 {
-		_randOffset = random_range(offsetMin, offsetClamp);
+	if tuftPosEqual[i] + offsetMin < tuftPosMin {
+		_minClamp = tuftPosEqual[i] + offsetMin - tuftPosMin;
 	}
-	else {
-		_randOffset = random_range(offsetMin, offsetMax);
-	}
+	
+	_randOffset = random_range(_minClamp, _maxClamp);
 	
 	tuftPosOffsets[i] = tuftPosEqual[i] + _randOffset;
 	
 	var _overlapDist = 2;
 	var _xPos = x - spriteWidth/2 + tuftPosOffsets[i];
 	var _yPos = y - spriteHeight/2 - tuftHeight/2;
-	
 	var _overlapTufts = ds_list_create();
+	var _overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + 1, _xPos + _overlapDist, _yPos - 1, obj_grass_tuft, false, true, _overlapTufts, true);
 	
-	var _overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + _overlapDist, _xPos + _overlapDist, _yPos - _overlapDist, obj_grass_tuft, false, true, _overlapTufts, true);
 	if ds_list_size(_overlapTufts) != 0 {
-		if i == 0 {
-			_randOffset = random_range(offsetClamp, offsetMax);
+		// Ensure tufts are clamped within the range
+		if tuftPosEqual[i] + offsetMax > tuftPosMax {
+			_maxClamp = tuftPosEqual[i] + offsetMax - tuftPosMax;
 		}
-		else if i == tuftAmount-1 {
-			_randOffset = random_range(offsetMin, offsetClamp);
+		if tuftPosEqual[i] + offsetMin < tuftPosMin {
+			_minClamp = tuftPosEqual[i] + offsetMin - tuftPosMin;
 		}
-		else {
-			_randOffset = random_range(offsetMin, offsetMax);
-		}
-		
+	
 		tuftPosOffsets[i] = tuftPosEqual[i] + _randOffset;
+		_xPos = x - spriteWidth/2 + tuftPosOffsets[i];
+		
 		ds_list_destroy(_overlapTufts);
 		_overlapTufts = ds_list_create();
-		_overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + _overlapDist, _xPos + _overlapDist, _yPos - _overlapDist, obj_grass_tuft, false, true, _overlapTufts, true);
+		_overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + 1, _xPos + _overlapDist, _yPos - 1, obj_grass_tuft, false, true, _overlapTufts, true);
 		
 		if  ds_list_size(_overlapTufts) != 0 {
 			array_delete(tuftPosOffsets, i, 1);
 			array_delete(tuftSprites, i, 1);
 			array_delete(tuftPosEqual, i, 1);
 			tuftAmount = array_length(tuftPosOffsets);
+			show_debug_message([array_length(tuftSprites), array_length(tuftPosEqual), array_length(tuftPosOffsets), "AAAAAAAA"]);
 		}
 		else {
 			instance_create_layer(x - spriteWidth/2 + tuftPosOffsets[i], y - spriteHeight/2 - tuftHeight/2, "Foliage_Ground_Stuff", obj_grass_tuft,
 			{
 				image_index : tuftSprites[i],
 			})
-			show_debug_message([tuftPosOffsets, tuftAmount, tuftSprites]);
+			show_debug_message([array_length(tuftSprites), array_length(tuftPosEqual), array_length(tuftPosOffsets), "BBBBBBB"]);
 		}
 	}
 	else {
-		bugPosArray[i] = [_xPos,_yPos];
 		instance_create_layer(x - spriteWidth/2 + tuftPosOffsets[i], y - spriteHeight/2 - tuftHeight/2, "Foliage_Ground_Stuff", obj_grass_tuft,
 		{
 			image_index : tuftSprites[i],
 		})
-		show_debug_message([tuftPosOffsets, tuftAmount, tuftSprites]);
+		show_debug_message([array_length(tuftSprites), array_length(tuftPosEqual), array_length(tuftPosOffsets)]);
 	}
 	ds_list_destroy(_overlapTufts);
 }

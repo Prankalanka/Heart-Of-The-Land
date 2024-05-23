@@ -328,47 +328,53 @@ function moveCamera() {
 #endregion
  
  #region Player Camera Control 
-getNextCamPos = function() {
+getNextCamTarget = function() {
+	// Smooth times
+	var _xCamSmoothTime = 7;
 	var _yCamSmoothTime = 0.25;
 	
+	// X Target Setup
 	xCamTarget = x - camera_get_view_width(view_camera[0]) / xCamOffset;
 	
-	//var _xPlyrCamPos = x - camera_get_view_width(view_camera[0]) / xCamOffset;
-	//var _xPlyrCamOffset = x - (camera_get_view_x(view_camera[0]) + xMidOffset);
-	 
+	// Look ahead
+	// We stick to the same position if we're not inputting anything
+	if inputHandler.xInputDir != 0 {
+		// Smoothly transition to next lookAhead value
+		var _nextLookAheadDist = (lookAheadDist + lAAccel * inputHandler.xInputDir) * lADecel;
+
+		// Clamp lookAhead value
+		if abs(_nextLookAheadDist) < lookAheadMax {
+			lookAheadDist = _nextLookAheadDist;
+		}
+		else { 
+			lookAheadDist = lookAheadMax * inputHandler.xInputDir;
+		}
+	}
+
+	xCamTarget += lookAheadDist;
+	xCamTarget += persistVar.xVel * _xCamSmoothTime; // Look ahead of velocity as well (multiplied by that because I randomly found out it works)
+	
+	// Y Target Setup
 	var _plyrCamPos = y - camera_get_view_height(view_camera[0]) / yCamOffset;
 	var _yPlyrCamOffset = y - (camera_get_view_y(view_camera[0]) + yCamMid);
-	
-	//if abs(_xPlyrCamOffset) >= xMaxPlyrCamOffset {
-	//	xCamTarget = _xPlyrCamPos + xMaxPlyrCamOffset * sign(_xPlyrCamOffset) * -1;
-	//}
-	//var _yCamLerpVal = abs(_yPlyrCamOffset)/900;
 	
 	// Clamp to maximum boundary if exceeding it
 	if sign(_yPlyrCamOffset) == 1 {
 		smoothYVel = lerp(smoothYVel, _yPlyrCamOffset + 40  * _yCamSmoothTime * 1, 0.01);
 		var _nextYCamTarget = _plyrCamPos + smoothYVel;
-		yCamTarget = lerp(yCamTarget, _nextYCamTarget, 0.3)
+		yCamTarget = lerp(yCamTarget, _nextYCamTarget, 0.3);
 	 }
-	 	// Clamp to maximum boundary if exceeding it
-	else {
-		if abs(_yPlyrCamOffset) >= yMaxPlyrCamOffset {
+	 // Clamp to maximum boundary if exceeding it
+	else if abs(_yPlyrCamOffset) >= yMaxPlyrCamOffset {
 			yCamTarget = _plyrCamPos + yMaxPlyrCamOffset * sign(_yPlyrCamOffset) * -1;
-		}
+	} 
+	else {
 		smoothYVel = 0;
 	}
 	 
-	 
-	 if _yPlyrCamOffset != yCamTarget - _plyrCamPos
-	 {
-		 //show_debug_message("h");
-	 }
-	 //show_debug_message([yCamTarget, _plyrCamPos, persistVar.yVel * _yCamSmoothTime, yMaxPlyrCamOffset, _yPlyrCamOffset, yCamTarget - _plyrCamPos]);
+	if xCamTarget > xBoun
 	
-	//show_debug_message([y, camera_get_view_y(view_camera[0]) + yCamMid, yPlyrCamOffset])
-	inputHandler.checkWalk();
-	
-	return [xCamTarget, yCamTarget, x, y, inputHandler.xInputDir, persistVar.xVel, _yCamSmoothTime];
+	return [xCamTarget, yCamTarget];
 }
 #endregion
 

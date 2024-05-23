@@ -35,8 +35,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"Sprite25",
-    "path":"sprites/Sprite25/Sprite25.yy",
+    "name":"spr_camera_bounds",
+    "path":"sprites/spr_camera_bounds/spr_camera_bounds.yy",
   },
   "spriteMaskId":null,
   "visible":true,
