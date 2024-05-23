@@ -11,3 +11,5 @@ function scr_delta_time(){
 	global.actualDelta = delta_time / 1000000;
 	global.deltaMultiplier = actualDelta / targetDelta;
 }
+
+randomise();

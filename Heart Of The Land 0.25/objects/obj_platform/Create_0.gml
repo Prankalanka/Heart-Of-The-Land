@@ -5,8 +5,8 @@
 // Keeping them instance variables for debug purposes
 
 // Generate Amount
-tuftAmountMin = 3;
-tuftAmountMax = 6;
+tuftAmountMin = 25;
+tuftAmountMax = 40;
 tuftAmount = irandom_range(tuftAmountMin, tuftAmountMax);
 
 // Generate Sprite Per Tuft
@@ -20,6 +20,7 @@ for (var i = 0; i < tuftAmount; i++) {
 
 // Generate Equal Offsets (hopefully maths right)
 tuftPosAmount = 15;
+tuftPosAmount += (tuftAmountMax - tuftPosAmount);
 tuftPosBoundsPercentage = 20;
 tuftPosBoundsFraction = 100/tuftPosBoundsPercentage;
 spriteWidth = sprite_get_width(sprite_index);
@@ -67,15 +68,14 @@ for (var i = 0; i < tuftAmount; i++) {
 	
 	tuftPosOffsets[i] = tuftPosEqual[i] + _randOffset;
 	
-	var _overlapDist = 150;
+	var _overlapDist = 2;
 	var _xPos = x - spriteWidth/2 + tuftPosOffsets[i];
 	var _yPos = y - spriteHeight/2 - tuftHeight/2;
 	
 	var _overlapTufts = ds_list_create();
 	
 	var _overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + _overlapDist, _xPos + _overlapDist, _yPos - _overlapDist, obj_grass_tuft, false, true, _overlapTufts, true);
-	
-	if _overlapTuftAmt != 0 {
+	if ds_list_size(_overlapTufts) != 0 {
 		if i == 0 {
 			_randOffset = random_range(offsetClamp, offsetMax);
 		}
@@ -87,26 +87,31 @@ for (var i = 0; i < tuftAmount; i++) {
 		}
 		
 		tuftPosOffsets[i] = tuftPosEqual[i] + _randOffset;
+		ds_list_destroy(_overlapTufts);
+		_overlapTufts = ds_list_create();
 		_overlapTuftAmt = collision_rectangle_list(_xPos - _overlapDist, _yPos + _overlapDist, _xPos + _overlapDist, _yPos - _overlapDist, obj_grass_tuft, false, true, _overlapTufts, true);
 		
-		if _overlapTuftAmt != 0 {
+		if  ds_list_size(_overlapTufts) != 0 {
 			array_delete(tuftPosOffsets, i, 1);
 			array_delete(tuftSprites, i, 1);
 			array_delete(tuftPosEqual, i, 1);
 			tuftAmount = array_length(tuftPosOffsets);
 		}
+		else {
+			instance_create_layer(x - spriteWidth/2 + tuftPosOffsets[i], y - spriteHeight/2 - tuftHeight/2, "Foliage_Ground_Stuff", obj_grass_tuft,
+			{
+				image_index : tuftSprites[i],
+			})
+			show_debug_message([tuftPosOffsets, tuftAmount, tuftSprites]);
+		}
 	}
 	else {
 		bugPosArray[i] = [_xPos,_yPos];
+		instance_create_layer(x - spriteWidth/2 + tuftPosOffsets[i], y - spriteHeight/2 - tuftHeight/2, "Foliage_Ground_Stuff", obj_grass_tuft,
+		{
+			image_index : tuftSprites[i],
+		})
+		show_debug_message([tuftPosOffsets, tuftAmount, tuftSprites]);
 	}
+	ds_list_destroy(_overlapTufts);
 }
-
-// Create Tuft Instance
-for (var i = 0; i < tuftAmount; i++) {
-	instance_create_layer(x - spriteWidth/2 + tuftPosOffsets[i], y - spriteHeight/2 - tuftHeight/2, "Foliage_Ground_Stuff", obj_grass_tuft,
-	{
-		image_index : tuftSprites[i],
-	})
-	show_debug_message([tuftPosOffsets, tuftAmount, tuftSprites]);
-}
-

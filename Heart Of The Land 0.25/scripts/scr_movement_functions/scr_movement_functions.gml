@@ -8,8 +8,8 @@ function updPosVars() {
 	persistVar.x = x;
 	persistVar.y = y;
 }
-
-
+ 
+ 
 /// @function                floorXVel()
 /// @description             Floors x velocity value for entity object.
 function floorXVel() {

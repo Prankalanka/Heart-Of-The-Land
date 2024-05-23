@@ -41,7 +41,7 @@ targetX += lookAheadDist;
 targetX += _plyrXVel*8// Look ahead of velocity as well (multiplied by that because I randomly found out it works)
 
 
-xCam = smoothDamp(xCam, targetX, xVel, 8); 
+xCam = smoothDamp(xCam, targetX, xVel, 7); 
 yCam = smoothDamp(yCam, targetY, yVel, _ySmoothTime);
 
 
