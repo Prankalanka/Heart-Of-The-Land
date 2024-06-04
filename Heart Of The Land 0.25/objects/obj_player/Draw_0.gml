@@ -25,7 +25,8 @@ var _yCam = camera_get_view_y(view_camera[0]);
 var _xCam = camera_get_view_x(view_camera[0]);
 
 
-//draw_line(_xCam + xMidOffset, _yCam + yMidOffset + yMaxPlyrCamOffset, _xCam + xMidOffset, _yCam + yMidOffset - yMaxPlyrCamOffset);
+draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset + posYMaxPlyrCamOffset);
+draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset - negYMaxPlyrCamOffset);
 
 
 

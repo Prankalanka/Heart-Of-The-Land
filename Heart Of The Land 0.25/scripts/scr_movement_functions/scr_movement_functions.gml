@@ -140,6 +140,33 @@ function checkStuck() {
 	updPosVars();
 }
 
+function checkSpriteStuck(_differences) {
+	//show_debug_message("stucksprite");
+	if place_meeting(x, y, persistVar.colliderArray) {
+		// Cast a ray that only continues whilst inside the object
+		if !(place_meeting(x + _differences[0], y + _differences[1], persistVar.colliderArray)) {
+			x += _differences[0];
+			y += _differences[1];
+			show_debug_message("a");
+		}
+		else if !(place_meeting(x + _differences[0], y + _differences[3], persistVar.colliderArray)) {
+			x += _differences[0];
+			y += _differences[3];
+			show_debug_message("b");
+		}
+		else  if !(place_meeting(x + _differences[2], y + _differences[1], persistVar.colliderArray)) {
+			x += _differences[2];
+			y += _differences[1];
+			show_debug_message("c");
+		}
+		else if !(place_meeting(x + _differences[2], y + _differences[3], persistVar.colliderArray)) {
+			x += _differences[2];
+			y += _differences[3];
+			show_debug_message("d");
+		}
+		show_debug_message(_differences);
+	}
+}
 
 /// Take the direction we want to face in and turn it into an index for our entity's anim array
 function faceDir(_velOrDir) {
@@ -227,12 +254,12 @@ function updGrav(_grav, axis, _clamp = 1000000) {
     _currentVelocity = (_currentVelocity - _omega * _temp) * _exponent;
     var _output = _target + (_change + _temp) * _exponent;
 
-    // Prevent overshooting
-    if (_originalTo - _current > 0.0 and 0.0 == _output and _output > _originalTo)
+    // Prevent overshooting (for some reason it was wrong before)
+    if (_current < _originalTo and _output > _originalTo) or (_current > _originalTo and _output < _originalTo)
     {
         _output = _originalTo;
         _currentVelocity = (_output - _originalTo);
     }
 
-    return _output;
+    return [_output, _currentVelocity];
 }

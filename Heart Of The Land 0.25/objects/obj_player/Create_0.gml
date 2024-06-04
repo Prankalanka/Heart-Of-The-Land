@@ -6,7 +6,7 @@ var _fakeMaxSpeed = 12.2;
 var _walkVarA = 12;
 var _walkVarB = 2;
 var _walkAccel = 2.4;
-var _decel = 0.94;
+var _decel = 0.93;
 var _walkAccelDef = 2.4;
 var _walkAccelMax = 4;
 var _walkVelMax = 32;
@@ -34,7 +34,7 @@ var _inAirAnims = [spr_jump_right, spr_jump_left];
 
 // Jump State
 var _peak = -300;
-var _framesToPeak = 23;
+var _framesToPeak = 24;
 var _initJumpVel = (2 * _peak) / _framesToPeak + _peak/sqr(_framesToPeak);
 var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 
@@ -51,12 +51,13 @@ var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
 var _dashAnims = [spr_idle_right, spr_idle_left];
 
 var _dashDashDuration = 12;
+var _xVelMax = ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax);
 
-var _dashData = [_dashDashDuration];
+var _dashData = [_dashDashDuration, _xVelMax];
 #endregion
 
 #region Air Dash State Setup
-var _aDPeak = -100;
+var _aDPeak = -40;
 var _aDFramesToPeak = 12;
 var _aDInitYVel = (2 * _aDPeak) / _aDFramesToPeak + _aDPeak/sqr(_aDFramesToPeak);
 var _aDGrav = _grav;
@@ -331,7 +332,7 @@ function moveCamera() {
 getNextCamTarget = function() {
 	// Smooth times
 	var _xCamSmoothTime = 7;
-	var _yCamSmoothTime = 0.25;
+	var _yCamSmoothTime = 3;
 	
 	// X Target Setup
 	xCamTarget = x - camera_get_view_width(view_camera[0]) / xCamOffset;
@@ -359,22 +360,36 @@ getNextCamTarget = function() {
 	var _yPlyrCamOffset = y - (camera_get_view_y(view_camera[0]) + yCamMid);
 	
 	// Clamp to maximum boundary if exceeding it
-	if sign(_yPlyrCamOffset) == 1 {
-		smoothYVel = lerp(smoothYVel, _yPlyrCamOffset + 40  * _yCamSmoothTime * 1, 0.01);
-		var _nextYCamTarget = _plyrCamPos + smoothYVel;
-		yCamTarget = lerp(yCamTarget, _nextYCamTarget, 0.3);
+	if sign(_yPlyrCamOffset) == 1 and abs(_yPlyrCamOffset) >= abs(posYMaxPlyrCamOffset) {
+		 yCamTarget = _plyrCamPos + posYMaxPlyrCamOffset * sign(_yPlyrCamOffset) * -1;
 	 }
 	 // Clamp to maximum boundary if exceeding it
-	else if abs(_yPlyrCamOffset) >= yMaxPlyrCamOffset {
-			yCamTarget = _plyrCamPos + yMaxPlyrCamOffset * sign(_yPlyrCamOffset) * -1;
+	else if sign(_yPlyrCamOffset) == -1 and abs(_yPlyrCamOffset) >= abs(negYMaxPlyrCamOffset) {
+		yCamTarget = _plyrCamPos + negYMaxPlyrCamOffset * sign(_yPlyrCamOffset) * -1;
 	} 
-	else {
-		smoothYVel = 0;
+	
+	var _bounds = instance_place(x, y, obj_camera_bounds);
+	if _bounds != noone {
+		_bounds = _bounds.bounds;
+	}
+	
+	if _bounds != noone {
+		if xCamTarget < _bounds[0] {
+			_xCamSmoothTime = 27;
+		}
+		else if xCamTarget > _bounds[2] - xMidOffset*2 {
+			_xCamSmoothTime = 27;
+		}
+		
+		if yCamTarget < _bounds[1] {
+			_yCamSmoothTime = 27;
+		}
+		else if yCamTarget > _bounds[3] - yMidOffset*2{
+			_yCamSmoothTime = 27;
+		}
 	}
 	 
-	if xCamTarget > xBoun
-	
-	return [xCamTarget, yCamTarget];
+	return [xCamTarget, yCamTarget, _bounds, _xCamSmoothTime, _yCamSmoothTime];
 }
 #endregion
 
@@ -401,10 +416,14 @@ yMidOffset = camera_get_view_height(view_camera[0]) / yCamOffset;
 xMaxPlyrCamOffset = camera_get_view_width(view_camera[0]) / 6.75;
 
 yCamMid = camera_get_view_height(view_camera[0]) / yCamOffset;
-yMaxPlyrCamOffset = camera_get_view_height(view_camera[0]) / 6.75;
+negYMaxPlyrCamOffset = camera_get_view_height(view_camera[0]) / 6.75;
+posYMaxPlyrCamOffset = camera_get_view_height(view_camera[0]) / 16.75 *0.001;
 smoothYVel = 0;
 
-yCamLerpTarget = 0;
+lookAheadDist = 0;
+lookAheadMax = camera_get_view_width(view_camera[0]) / 24;
+lAAccel = 6.25;
+lADecel = 0.985;
 
 // Debug
 xVelArray = [];
@@ -669,10 +688,20 @@ updPos = function() {
 updAnim = function(_spriteIndex = undefined, _imageIndex = undefined, _imageSpeed = undefined) {
 	// GONNA BE FUNC OF ENTITY
 	if _spriteIndex != undefined {
-		sprite_index = _spriteIndex; // Face correctly
+		var _prevBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
+		sprite_index = _spriteIndex;
+		var _currBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
+		
+		var _differences = [0,0,0,0];
+		
+		for (var i = 0; i < array_length(_prevBBox); i++) {
+			_differences[i] = _prevBBox[i] - _currBBox[i];
+		}
+		
+		checkSpriteStuck(_differences);
 	}
 	if _imageIndex != undefined {
-		image_index = _imageIndex;
+		image_index = _imageIndex; // Face correctly
 	}
 	if _imageSpeed != undefined {
 		// Scale anim speed with x speed
@@ -705,7 +734,7 @@ changeStates = function() {
 				// If new state isn't a duplistate do the enter function for that state
 				var _changeData = stateMachine.changeData;
 				if !isDuplistate(activeStates[i]) {
-					if array_length(_changeData) != 0 and _changeData[_prioState.num] != undefined {
+					if array_length(_changeData) >= _prioState.num + 1 and _changeData[_prioState.num] != 0 {
 						activeStates[i].sEnter(_changeData[_prioState.num]);
 					}
 					else {
@@ -804,13 +833,14 @@ initStates(_startingStates);
 // Get a generalised animation update for each state YAAAAAAAAAAAAAAAAAAAAAA
 // Improve the checkStuck function
 // GET RID OF THAT AUTONOMOUS BULLSHIT YAAAAAAAAAAAAA
-// Make movement more cohesive (taking notes, adding buffers and stuff)
+// Make movement more cohesive (taking notes, adding buffers and stuff) YAAAAAAAAAAAAAAAAAAAAAAAAAA
 // Add cooldown to climb, so we don't instantly climb after wall jumping YAAAAAAAAAAAAAAAA
 // Reduce hitbox on direction we aren't facing YAAAAAAAAAAAAAAAAAA
 // Input handler was saving surface, which lead us to teleport to surface if we hold w and are not on ground, YAAAAAAAAAAAAAAA
 // Make climbBox shorter from the bottom
 // Dashing changed slightly (equation changed but similar results) YAAAAAAAAAAAAAAAAAAAA
 // Dashing didn't change to inAir... had to go through jump to do that, fix YAAAAAAAAAAAAAAAAAAA
+// Fix unstuck by comparing the boundaries of our previous sprite to the current one, should completely fix everything
 
 
 // BUGS
@@ -824,7 +854,7 @@ initStates(_startingStates);
 // WE SHOULD PROBABLY ONLY UPDATE POSITION AT THE END OF EACH FRAME YAAAAAAAAAAAAAAAAAAAA
 // WE CAN'T GO DO THE WHOLE PIPELINE OF ONE ENTITY THEN MOVE ONTO ANOTHER ENTITY, WE NEED TO DO ONE STAGE OF EVERY ENTITY, THEN ANOTHER STAGE OF EVERY ENTITY
 // DO ANIM STUFF YAAAAAAAAAAAAAAAAAA
-// When we collide with something on the x axis, strange things happen to our walkVel
+// When we collide with something on the x axis, strange things happen to our walkVel (idk if solved, probably is though)
 
 // CLEAN UP
 // In the state machine we have a for loop that we use a lot to determine our state hierarchy, turn it into a function YAAAaaa

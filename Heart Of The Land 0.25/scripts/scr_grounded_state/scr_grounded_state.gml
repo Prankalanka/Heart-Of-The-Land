@@ -103,7 +103,7 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	walkVarA = _data[2];
 	walkVarB = _data[3];
 	walkAccel = _data[4];
-	decel = _data[5];
+	decelMin = _data[5];
 	walkAccelDef = _data[6];
 	walkAccelMax = _data[7];
 	walkVelMax = _data[8];
@@ -113,12 +113,15 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	xInputDir = 0;
 	walkInputDir = 0;
 	accelledThisTurn = false;
+	decelMax = 0.5;
+	decel = decelMin;
 	walkAnims = [anims[0], anims[1]];
 	idleAnims = [anims[2], anims[3]];
 	
 	static sEnter = function(_data = undefined) {
 		walkAccel = walkAccelDef;
 		xVel = persistVar.xVel;
+		decel = decelMin;
 		convXToWalk();
 	}
 
@@ -164,7 +167,7 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		}
 		
 		var _spriteIndex = activeAnims[faceDir(inputHandler.xInputDir)]
-		var _imageSpeed = 0.5 + 0.5 * (abs(persistVar.xVel)/xVelMax);
+		var _imageSpeed = 0.25 + 0.75 * (abs(persistVar.xVel)/xVelMax);
 		var _imageIndex = undefined;
 		
 		return [_spriteIndex, _imageIndex, _imageSpeed];
@@ -277,6 +280,7 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	///		
 	/// Eventually we'll use projectile state, or something similar.
 	static updXVel = function() {
+		decel = lerp(decel, decelMax, 0.25);
 		// Update xVel when above the cap
 		if abs(xVel) * decel <= xVelMax {
 			if inputHandler.xInputDir == sign(xVel) {
@@ -290,7 +294,7 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 				convXToWalk();
 			}
 		}
-		else {
+		else {	
 			xVel = xVel * decel;
 			persistVar.xVel = xVel;
 		}

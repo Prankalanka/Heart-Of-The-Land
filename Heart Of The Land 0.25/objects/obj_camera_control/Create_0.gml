@@ -20,7 +20,4 @@ yVel = 0;
 camXAccel = 0;
 camYAccel = 0;
 
-lookAheadDist = 0;
-lookAheadMax = camera_get_view_width(view_camera[0]) / 24;
-lAAccel = 6.25;
-lADecel = 0.985;
+bounds = [0,0,0,0];

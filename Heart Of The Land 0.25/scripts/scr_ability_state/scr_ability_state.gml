@@ -82,6 +82,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	isAbilityDone = false;
 	if _data != false {
 		dashDuration = _data[0];
+		xVelMax = _data[1];
 	}
 	
 	static sEnter = function(_data = undefined) {	
@@ -103,7 +104,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	    // Start at 1 cuz 0 makes xVel equal 0
 	    dashFrame += 1;
 		
-		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 6.43 * dir) * 0.85;
+		persistVar.xVel = (dashFrame == 1)? xVelMax * dir : (persistVar.xVel + 17.7 * dir) * 0.57;
 		
 	    if dashFrame == dashDuration {
 			isAbilityDone = true;
@@ -198,7 +199,7 @@ function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 	    dashFrame += 1;
 		
 		// Set vel
-		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 4 * dir) * 0.85;
+		persistVar.xVel = (dashFrame == 1)? 8.94 * dir : (persistVar.xVel + 3.6 * dir) * 0.85;
 		if inRegion[2] {persistVar.yVel = initYVel;}
 		
 	    if dashFrame == dashDuration {
