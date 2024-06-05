@@ -13,10 +13,10 @@ var _extBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];// Extend left, rig
  var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
  // Reduce the hitbox in the opposite direction we're facing
  if _dirFacing = 1 {
-	_extBox = [bbox_left + sprite_width/8, bbox_top, bbox_right, bbox_bottom];
+	_extBox = [bbox_left + sprite_width/7.5, bbox_top, bbox_right, bbox_bottom];
 }
 else {
-	_extBox = [bbox_left, bbox_top, bbox_right - sprite_width/8, bbox_bottom];
+	_extBox = [bbox_left, bbox_top, bbox_right - sprite_width/7.5, bbox_bottom];
 }
 	 
 draw_rectangle(_extBox[0], _extBox[1], _extBox[2], _extBox[3], true);

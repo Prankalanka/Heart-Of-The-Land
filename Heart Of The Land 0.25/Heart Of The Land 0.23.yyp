@@ -53,11 +53,13 @@
     {"$GMFolder":"","%Name":"Tile Sets","folderPath":"folders/Tile Sets.yy","name":"Tile Sets","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Timelines","folderPath":"folders/Timelines.yy","name":"Timelines","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
-  "IncludedFiles":[],
+  "IncludedFiles":[
+    {"$GMIncludedFile":"","%Name":"Image_20240520_21624_814","CopyToMask":-1,"filePath":"datafiles","name":"Image_20240520_21624_814","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+  ],
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.4.0.137",
+    "IDEVersion":"2024.2.0.132",
   },
   "name":"Heart Of The Land 0.23",
   "resources":[
@@ -85,6 +87,7 @@
     {"id":{"name":"obj_rocc","path":"objects/obj_rocc/obj_rocc.yy",},},
     {"id":{"name":"obj_rock","path":"objects/obj_rock/obj_rock.yy",},},
     {"id":{"name":"obj_swing","path":"objects/obj_swing/obj_swing.yy",},},
+    {"id":{"name":"obj_tree_top","path":"objects/obj_tree_top/obj_tree_top.yy",},},
     {"id":{"name":"obj_tree","path":"objects/obj_tree/obj_tree.yy",},},
     {"id":{"name":"obj_WOLF","path":"objects/obj_WOLF/obj_WOLF.yy",},},
     {"id":{"name":"par_throwable","path":"objects/par_throwable/par_throwable.yy",},},
@@ -115,6 +118,8 @@
     {"id":{"name":"spr_bat","path":"sprites/spr_bat/spr_bat.yy",},},
     {"id":{"name":"spr_bush","path":"sprites/spr_bush/spr_bush.yy",},},
     {"id":{"name":"spr_camera_bounds","path":"sprites/spr_camera_bounds/spr_camera_bounds.yy",},},
+    {"id":{"name":"spr_climb_left","path":"sprites/spr_climb_left/spr_climb_left.yy",},},
+    {"id":{"name":"spr_climb_right","path":"sprites/spr_climb_right/spr_climb_right.yy",},},
     {"id":{"name":"spr_dirt_back_wall","path":"sprites/spr_dirt_back_wall/spr_dirt_back_wall.yy",},},
     {"id":{"name":"spr_grass_tuft_group","path":"sprites/spr_grass_tuft_group/spr_grass_tuft_group.yy",},},
     {"id":{"name":"spr_grass_tuft","path":"sprites/spr_grass_tuft/spr_grass_tuft.yy",},},

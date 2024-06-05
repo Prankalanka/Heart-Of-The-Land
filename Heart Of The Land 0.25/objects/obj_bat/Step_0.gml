@@ -8,7 +8,7 @@ for (var i = 0; i < instance_number(obj_player); ++i;)
 	if collision_circle(x, y, 200, obj_player, false, true)
 	{
 		image_angle = point_direction(plyr.x,plyr.y, x, y);
-
+ 
 		targetX = (diving)? plyr.x - x: plyr.x - x;
 		targetY = (diving)? plyr.y - y : plyr.y - y;
 		

@@ -34,12 +34,12 @@ var _inAirAnims = [spr_jump_right, spr_jump_left];
 
 // Jump State
 var _peak = -300;
-var _framesToPeak = 24;
+var _framesToPeak = 26;
 var _initJumpVel = (2 * _peak) / _framesToPeak + _peak/sqr(_framesToPeak);
 var _grav = (2 * _peak) / sqr(_framesToPeak); // in Air State also
 
 // In Air State
-var _coyoteMax = 90;
+var _coyoteMax = 40;
 var  _yVelMax = 30;
 var _coyoteDistMax = 40;
 
@@ -63,7 +63,7 @@ var _aDInitYVel = (2 * _aDPeak) / _aDFramesToPeak + _aDPeak/sqr(_aDFramesToPeak)
 var _aDGrav = _grav;
 var _aDDashDuration = 12;
 
-var _airDashData = [_aDPeak, _aDFramesToPeak, _aDInitYVel, _aDGrav, _aDDashDuration];
+var _airDashData = [_aDPeak, _aDFramesToPeak, _aDInitYVel, _aDGrav, _aDDashDuration, _xVelMax];
  #endregion
  
 #region Swing State Setup
@@ -79,16 +79,17 @@ swingDistance = 100;
 
 #region Climb State Setup
 // Climb
+var _climbAnims = [spr_climb_right, spr_climb_left];
 var _slideDownVel = 6;
 var _slideDownerVel = 10;
 
 var 	_getClimbBox = function(_dirFacing) {
 	// Reduce the hitbox in the opposite direction we're facing
 	 if _dirFacing = 1 {
-		return [bbox_left + sprite_width/8, bbox_top, bbox_right, bbox_bottom];
+		return [bbox_left + sprite_width/6, bbox_top, bbox_right, bbox_bottom];
 	}
 	else {
-		return [bbox_left, bbox_top, bbox_right - sprite_width/8, bbox_bottom];
+		return [bbox_left, bbox_top, bbox_right - sprite_width/6, bbox_bottom];
 	}
 }
 
@@ -605,7 +606,7 @@ states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAni
 states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
 states[SH.IDLECOMBAT] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
 states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
-states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
+states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _climbAnims, _climbData);
 states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
 states[SH.AIRDASH] = new AirDashState(persistVar, stateMachine, inputHandler, _inAirAnims, _airDashData);
 

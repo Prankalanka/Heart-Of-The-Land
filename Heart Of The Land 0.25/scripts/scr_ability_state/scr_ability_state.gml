@@ -181,6 +181,7 @@ function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 	initYVel =_data[2];
 	grav = _data[3];
 	dashDuration = _data[4];
+	xVelMax = _data[5];
 	// Has properties of dash state
 
 	static sEnter = function() {
@@ -644,6 +645,11 @@ function ClimbState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		else {
 			persistVar.yVel = slideDownVel; 
 		}
+	}
+		
+	static getAnimEnter = function() {
+		var _spriteIndex = activeAnims[faceDir(inputHandler.xInputDir)]
+		return [_spriteIndex, undefined, undefined];
 	}
 	
 	static checkWallJump12 = function() {

@@ -187,6 +187,7 @@ function faceDir(_velOrDir) {
  function checkSetSurface(_extBox, _currentSurface = undefined) {
 	var _instList = ds_list_create();
 	var _listLength = collision_rectangle_list(_extBox[0], _extBox[1], _extBox[2], _extBox[3], all, false, true, _instList, true);
+	var _dirFacing = (persistVar.indexFacing == 0)? 1 : -1;
 	
 	if _listLength != 0 and inputHandler.cdClimb == 0 {
 	   for (var i = 0; i < _listLength; i++) {
@@ -197,11 +198,11 @@ function faceDir(_velOrDir) {
 				var _wallDir = (abs(_rightDiff) > abs(_leftDiff))? -1 : 1;
 			   
 			   // Only attach if we're running into the wall
-			   //if inputHandler.xInputDir == _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
-				inputHandler.surface = _instList[|i];
-				ds_list_destroy(_instList);
-				return true; // breaks out of function, not loop
-			   //}
+				if inputHandler.xInputDir == _wallDir * -1 or _dirFacing ==  _wallDir * -1 { // They opposite, if you face right you'll see the left side of the tree
+					inputHandler.surface = _instList[|i];
+					ds_list_destroy(_instList);
+					return true; // breaks out of function, not loop
+			   }
 		   }
 	   }
 	}	
