@@ -7,7 +7,8 @@ function AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 		if inRegion[1] {
 			if persistVar.xVel == 0 and inputHandler.xInputDir == 0 {
 				stateMachine.requestChange(SH.IDLE, 1);
-			} else {
+			} 
+			else {
 				stateMachine.requestChange(SH.WALK, 1);
 			}
 		}
@@ -118,7 +119,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 	
 	static checkWalk12 = function() {
-		if dashFrame == dashDuration and abs(persistVar.xVel) <= persistVar.xVelMax {
+		if dashFrame == dashDuration and abs(persistVar.xVel) <= xVelMax {
 			if inRegion[1] {
 				stateMachine.requestChange(SH.WALK, 1);
 			}
@@ -192,7 +193,7 @@ function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 		isAbilityDone = false;
 		
 		inputHandler.groundedAfterAirDash = false;
-	}	
+	}
 	
 	static updLogic = function() {
 		// Incremented until we reach duration and then exit state
@@ -813,3 +814,4 @@ function WallJumpState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 		checkFrame12();
 	}
 }
+

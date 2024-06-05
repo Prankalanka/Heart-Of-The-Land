@@ -1,18 +1,18 @@
-#region Walk State Setup
-var _walkAnims = [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left];
+#region Player Walk State Setup
+var _plyrWalkAnims = [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left];
 
-var _walkVel = 0;
+var _plyrWalkVel = 0;
 var _fakeMaxSpeed = 12.2;
-var _walkVarA = 12;
-var _walkVarB = 2;
-var _walkAccel = 2.4;
+var _plyrWalkVarA = 12;
+var _plyrWalkVarB = 2;
+var _plyrWalkAccel = 2.4;
 var _decel = 0.93;
-var _walkAccelDef = 2.4;
-var _walkAccelMax = 4;
-var _walkVelMax = 32;
-var _walkDeltaAccel = 0.125;
+var _plyrWalkAccelDef = 2.4;
+var _plyrWalkAccelMax = 4;
+var _plyrWalkVelMax = 32;
+var _plyrWalkDeltaAccel = 0.125;
 
-var _walkData = [_walkVel, _fakeMaxSpeed, _walkVarA, _walkVarB, _walkAccel, _decel, _walkAccelDef, _walkAccelMax, _walkVelMax, _walkDeltaAccel];
+var _plyrWalkData = [_plyrWalkVel, _fakeMaxSpeed, _plyrWalkVarA, _plyrWalkVarB, _plyrWalkAccel, _decel, _plyrWalkAccelDef, _plyrWalkAccelMax, _plyrWalkVelMax, _plyrWalkDeltaAccel];
 #endregion
 
 #region Health State Setup (Make a health region eventually)
@@ -51,7 +51,7 @@ var _jumpData = [_peak, _framesToPeak, _initJumpVel, _grav, _yVelMax];
 var _dashAnims = [spr_idle_right, spr_idle_left];
 
 var _dashDashDuration = 12;
-var _xVelMax = ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax);
+var _xVelMax = ((_fakeMaxSpeed * power(_plyrWalkVelMax, _plyrWalkVarB)) / (power(_plyrWalkVarA, _plyrWalkVarB) + power(_plyrWalkVelMax, _plyrWalkVarB))) * sign(_plyrWalkVelMax);
 
 var _dashData = [_dashDashDuration, _xVelMax];
 #endregion
@@ -394,13 +394,6 @@ getNextCamTarget = function() {
 #endregion
 
 #region Context Setup (Only the context uses these)
-// State Machine
-activeStates = undefined;
-prioState = undefined;
-
-canShowRequests = true;
-canShowStates = false;
-
 // Camera
 xCamOffset = 2;
 yCamOffset = 2;
@@ -573,7 +566,6 @@ inputHandler.checkContextInputs = function() {
 
 #region Persistant Variable Setup (Holds variables that the states need to read/write to, that multiple states need)
 persistVar = { 
-	// Context
 	colliderArray : [obj_platform, obj_block],
 	isBelow : false,
 	isAbove : false,
@@ -582,8 +574,8 @@ persistVar = {
 	xVel : 0,
 	yVel : 0,
 	
-	// Walk 
-	xVelMax : ((_fakeMaxSpeed * power(_walkVelMax, _walkVarB)) / (power(_walkVarA, _walkVarB) + power(_walkVelMax, _walkVarB))) * sign(_walkVelMax),	
+	x : x,
+	y : y,
 }
 
 #endregion
@@ -593,6 +585,12 @@ persistVar = {
 #endregion
 
 #region State Machine, State Creation and Initialisation
+activeStates = undefined;
+prioState = undefined;
+
+canShowRequests = true;
+canShowStates = false;
+
 stateMachine = new EntityStateMachine();
 
 states = [];
@@ -600,7 +598,7 @@ states = [];
 /// Takes specific entity data as input, alters the entity's and its own data depending on input.
 /// Specifically, they can alter which states are active, leading to major behavioural changes.
 states[SH.IDLE] = new IdleState(persistVar, stateMachine, inputHandler, _idleAnims);
-states[SH.WALK] = new WalkState(persistVar, stateMachine, inputHandler, _walkAnims, _walkData);
+states[SH.WALK] = new PlyrWalkState(persistVar, stateMachine, inputHandler, _plyrWalkAnims, _plyrWalkData);
 states[SH.INAIR] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
 states[SH.JUMP] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
 states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims, _dashData); 
@@ -610,199 +608,6 @@ states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAni
 states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _idleAnims, _climbData);
 states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
 states[SH.AIRDASH] = new AirDashState(persistVar, stateMachine, inputHandler, _inAirAnims, _airDashData);
-
-#region State Functions
-/// In its own function so states don't have to be defined when we create the stateMachine.
-/// Sets activeStates to arguments, enters and regions the activeStates, and sets prioState
-initStates = function(_startingStates)
-{
-	activeStates = _startingStates;
-		
-	// Enter and region all current states
-	for (var i = 0; i < array_length(activeStates); i++) {
-		activeStates[i].inRegion[i] = true;
-		activeStates[i].sEnter();
-	}
-	
-	// Figure out which state in the hierarchy we should have the animation of
-	prioState = getPrioState([activeStates[0].num, activeStates[1].num, activeStates[2].num]);
-}
-
-/// Checks what changes the current states are requesting, changes the requesting states and possibly the priority state depending on hierarchy. 
-/// Does the updLogic for each state, and finally does the getAnimUpd function for the priority state.
-execPipeLine = function() {
-	if persistVar.isBelow {
-		lastGroundedY = y;
-	}
-	
-	inputHandler.checkUserInputs();
-	inputHandler.checkContextInputs();
-	
-	checkChanges();
-		
-	if canShowRequests {
-		stateMachine.showRequests();
-	}
-		 
-	changeStates();
-		 
-	if canShowStates {
-		showStates();
-	}
-	
-	updLogic();
-	
-	// Update animation once all the context has been decided
-	var _animData = prioState.getAnimUpd();
-	if _animData != undefined {
-		updAnim(_animData[0], _animData[1], _animData[2]);
-	}
-	
-	updPos();
-}
-
-// Run updLogic func for each state
-updLogic = function() {
-	// Resets so we can tell which ones are unique again
-	for (var i = 0; i < array_length(activeStates); i++) {
-		activeStates[i].updated = false;
-	}
-		
-	// Does the update logic for each unique state once
-	for (var i = 0; i < array_length(activeStates); i++) {
-		if !activeStates[i].updated {
-			activeStates[i].updLogic();
-			activeStates[i].updated = true;
-		}
-	}
-}
-
-// Upd x and y based on persistVar's x and y velocities
-updPos = function() {
-	// Update Position (states only control velocity)
-	if persistVar.xVel != 0 {updX();}
-	if persistVar.yVel != 0 {updY();}
-}
-
-// Set arguments to their respective variables
-updAnim = function(_spriteIndex = undefined, _imageIndex = undefined, _imageSpeed = undefined) {
-	// GONNA BE FUNC OF ENTITY
-	if _spriteIndex != undefined {
-		var _prevBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
-		sprite_index = _spriteIndex;
-		var _currBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
-		
-		var _differences = [0,0,0,0];
-		
-		for (var i = 0; i < array_length(_prevBBox); i++) {
-			_differences[i] = _prevBBox[i] - _currBBox[i];
-		}
-		
-		checkSpriteStuck(_differences);
-	}
-	if _imageIndex != undefined {
-		image_index = _imageIndex; // Face correctly
-	}
-	if _imageSpeed != undefined {
-		// Scale anim speed with x speed
-		image_speed = _imageSpeed;
-	}
-	checkStuck();
-}
-
-/// If stateChanged is true, for every non-empty region of stateChanges, check which requested state is highest in the hierarchy.
-/// Possibly call the enter and exit functions of the requested and requesting states respectively, whilst always changing the inRegion values.
-/// After looping through all regions, set the prioState and reset the stateChanged, stateChanges, and changeData variables.
-changeStates = function() {
-	var _stateChanges = stateMachine.stateChanges
-	if stateMachine.stateChanged {
-		for (var i = 0; i < array_length(_stateChanges); i++) {
-			if array_length(_stateChanges[i]) != 0 {
-				// Sort by hierarchy
-				var _prioState = getPrioState(_stateChanges[i]);
-					
-				// If current state isn't a duplistate do the exit function for that state
-				if !isDuplistate(activeStates[i]) {
-					activeStates[i].sExit();	
-				}
-					
-				// Set current and next state inRegion values
-				activeStates[i].inRegion[i] = false;
-				activeStates[i] = _prioState;
-				activeStates[i].inRegion[i] = true;
-					
-				// If new state isn't a duplistate do the enter function for that state
-				var _changeData = stateMachine.changeData;
-				if !isDuplistate(activeStates[i]) {
-					if array_length(_changeData) >= _prioState.num + 1 and _changeData[_prioState.num] != 0 {
-						activeStates[i].sEnter(_changeData[_prioState.num]);
-					}
-					else {
-						activeStates[i].sEnter();
-					}
-					var _animData = activeStates[i].getAnimEnter();
-					if _animData != undefined {
-						updAnim(_animData[0], _animData[1], _animData[2]);
-					}
-				}
-			}
-		}
-		
-		prioState = getPrioState([activeStates[0].num, activeStates[1].num, activeStates[2].num]);
-			
-		// Reset
-		stateMachine.stateChanged = false;
-		stateMachine.stateChanges = [[], [], []];
-		stateMachine.changeData = [];
-	}
-}
-
-// Run checkChanges func for each state
-checkChanges = function() {
-	// Resets so we can tell which ones are unique again
-	for (var i = 0; i < array_length(activeStates); i++) {
-		activeStates[i].checked = false;
-	}
-		
-	// Does the doCheck function for each unique state once
-	// If we do it per state, they might not have the same context to check from
-	for (var i = 0; i < array_length(activeStates); i++) {
-		if !activeStates[i].checked {
-			activeStates[i].checkChanges();
-			activeStates[i].checked = true;
-		}
-	}
-}
-
-/// Check if the input state, is found multiple times in the activeStates array
-isDuplistate = function(_state) {
-	var _count = 0;
-	for (var i = 0; i < array_length(activeStates); i++) {
-		if activeStates[i] == _state{
-			_count++;
-			if _count >= 2 {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-	
-/// Return which state of activeStates is highest in the hierarchy 
-getPrioState = function(_nums) {
-	// Figure out which state in the hierarchy we should have the animation of
-	return states[script_execute_ext(max, _nums)];
-}
-
-/// Display the names of each currentState in the console
-showStates = function() {
-	var _currentNames = [undefined, undefined, undefined];
-	for (var i = 0; i < array_length(activeStates); i++) {
-		_currentNames[i] = activeStates[i].name;
-	}
-	show_debug_message(_currentNames);
-}
-#endregion
 
 // INITIALISE THE STATE MACHINE
 var _startingStates = [states[SH.IDLECOMBAT], states[SH.IDLE], states[SH.IDLE]];

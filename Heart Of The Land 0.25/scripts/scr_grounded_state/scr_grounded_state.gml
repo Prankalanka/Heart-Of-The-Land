@@ -71,7 +71,7 @@ function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	static checkWalk12 = function() {
 		// Go to move state if input
 		if xInputDir != 0 or persistVar.xVel != 0 {
-			if inRegion[1] {stateMachine.requestChange(SH.WALK, 1);}
+			if inRegion[1]{stateMachine.requestChange(SH.WALK, 1);}
 			if inRegion[2] {stateMachine.requestChange(SH.WALK, 2);}
 		}
 	}
@@ -95,8 +95,8 @@ function IdleState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 }
 
 /// Changes to IdleState if no xInput and xVel is 0
-function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
-	static name = "Walk";
+function PlyrWalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+	static name = "Player Walk";
 	static num = SH.WALK;
 	walkVel = _data[0];
 	fakeMaxSpeed = _data[1];
@@ -301,6 +301,21 @@ function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	}
 }
 
+function WalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : GroundedState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
+	xVelMax =  _data[0];
+	xVel = 0;
+	xInputDir = 0;
+	walkInputDir = 0;
+	walkAnims = [anims[0], anims[1]];
+	idleAnims = [anims[2], anims[3]];
+	
+	static sEnter = function(_data = undefined) {
+	}
+	
+	static updLogic = function() {
+		
+	}
+}
 
 #region Useless State
 /*

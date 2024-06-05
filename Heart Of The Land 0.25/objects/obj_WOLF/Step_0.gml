@@ -1,6 +1,3 @@
-/// @description Insert description here
-// You can write your code in this editor
-
 yDir = 0;
 isBelow =  place_meeting(x, (y + 1), obj_platform);
 isAbove = place_meeting(x, (y - 1), obj_platform);
