@@ -80,7 +80,7 @@ swingDistance = 100;
 #region Climb State Setup
 // Climb
 var _climbAnims = [spr_climb_right, spr_climb_left];
-var _slideDownVel = 6;
+var _slideDownVel = 4.0125;
 var _slideDownerVel = 10;
 
 var 	_getClimbBox = function(_dirFacing) {
@@ -607,7 +607,7 @@ states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandl
 states[SH.IDLECOMBAT] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
 states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
 states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _climbAnims, _climbData);
-states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _idleAnims, _wallJumpData);
+states[SH.WALLJUMP] = new WallJumpState(persistVar, stateMachine, inputHandler, _inAirAnims, _wallJumpData);
 states[SH.AIRDASH] = new AirDashState(persistVar, stateMachine, inputHandler, _inAirAnims, _airDashData);
 
 // INITIALISE THE STATE MACHINE

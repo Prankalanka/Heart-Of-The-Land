@@ -19,14 +19,14 @@ else {
 	_extBox = [bbox_left, bbox_top, bbox_right - sprite_width/7.5, bbox_bottom];
 }
 	 
-draw_rectangle(_extBox[0], _extBox[1], _extBox[2], _extBox[3], true);
+//draw_rectangle(_extBox[0], _extBox[1], _extBox[2], _extBox[3], true);
 
 var _yCam = camera_get_view_y(view_camera[0]);
 var _xCam = camera_get_view_x(view_camera[0]);
 
 
-draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset + posYMaxPlyrCamOffset);
-draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset - negYMaxPlyrCamOffset);
+//draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset + posYMaxPlyrCamOffset);
+//draw_line(_xCam + xMidOffset, _yCam + yMidOffset, _xCam + xMidOffset, _yCam + yMidOffset - negYMaxPlyrCamOffset);
 
 
 
