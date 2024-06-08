@@ -163,6 +163,7 @@ function updAnim(_spriteIndex = undefined, _imageIndex = undefined, _imageSpeed 
 		var _prevBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
 		sprite_index = _spriteIndex;
 		var _currBBox = [bbox_left, bbox_top, bbox_right, bbox_bottom];
+	
 		
 		var _differences = [0,0,0,0];
 		

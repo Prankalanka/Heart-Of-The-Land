@@ -612,7 +612,7 @@ function ClimbState(_persistVar, _stateMachine, _inputHandler, _anims, _data = u
 		
 		// Set surface, reset surface, and add surface to colliderArray
 		surface = inputHandler.surface;
-		inputHandler.surface = undefined; // Avoid glitches 
+		inputHandler.surface = undefined; // Avoid glitches
 		
 		// Set the enity's x to the edge of the surface's x
 		var _surfaceBoundary = (wallDir == 1)? surface.bbox_right : surface.bbox_left;
