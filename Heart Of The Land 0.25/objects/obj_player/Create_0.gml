@@ -2,7 +2,7 @@
 var _plyrWalkAnims = [spr_walk_right, spr_walk_left, spr_idle_right, spr_idle_left];
 
 var _plyrWalkVel = 0;
-var _fakeMaxSpeed = 12.2;
+var _fakeMaxSpeed = 11.2;
 var _plyrWalkVarA = 12;
 var _plyrWalkVarB = 2;
 var _plyrWalkAccel = 2.4;

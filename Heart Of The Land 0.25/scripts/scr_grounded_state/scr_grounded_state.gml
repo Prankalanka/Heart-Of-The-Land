@@ -113,7 +113,7 @@ function PlyrWalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 	xInputDir = 0;
 	walkInputDir = 0;
 	accelledThisTurn = false;
-	decelMax = 0.5;
+	decelMax = 0.82;
 	decel = decelMin;
 	walkAnims = [anims[0], anims[1]];
 	idleAnims = [anims[2], anims[3]];
@@ -144,6 +144,9 @@ function PlyrWalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 			}
 			else {
 				updXVel();
+				convXToWalk();
+				updAccel(); 
+				updVel();
 			}
 		}
 	}
@@ -260,7 +263,10 @@ function PlyrWalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 		// show_debug_message([_currXVel, _nextXVel]);
 		
 		var _nextXAccel = _nextXVel - _currXVel;
-		persistVar.xVel += _nextXAccel;
+		
+		if !(persistVar.xVel > abs(xVelMax) and sign(persistVar.xVel) == sign(_nextXAccel)) {
+			persistVar.xVel += _nextXAccel;
+		}
 	}
 	
 	/// @function	convXToWalk()
@@ -280,7 +286,10 @@ function PlyrWalkState(_persistVar, _stateMachine, _inputHandler, _anims, _data 
 	///		
 	/// Eventually we'll use projectile state, or something similar.
 	static updXVel = function() {
-		decel = lerp(decel, decelMax, 0.25);
+		if inRegion[2] {
+			decel = lerp(decel, decelMax, 0.25);
+		}
+
 		// Update xVel when above the cap
 		if abs(xVel) * decel <= xVelMax {
 			if inputHandler.xInputDir == sign(xVel) {

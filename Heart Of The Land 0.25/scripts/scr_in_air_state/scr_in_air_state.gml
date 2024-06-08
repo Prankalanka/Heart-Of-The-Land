@@ -136,7 +136,7 @@
 				return 1;
 			}
 			else {
-				return 1.1;
+				return 1.25;
 			}
 		}
 		else {

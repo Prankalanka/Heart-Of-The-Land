@@ -105,7 +105,7 @@ function DashState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	    // Start at 1 cuz 0 makes xVel equal 0
 	    dashFrame += 1;
 		
-		persistVar.xVel = (dashFrame == 1)? xVelMax * dir : (persistVar.xVel + 17.7 * dir) * 0.57;
+		persistVar.xVel = (dashFrame == 1)? xVelMax * dir : (persistVar.xVel + 18.4 * dir) * 0.57;
 		
 	    if dashFrame == dashDuration {
 			isAbilityDone = true;
