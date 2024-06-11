@@ -139,14 +139,21 @@ var _checkSetHeld = function() {
 		var _held = instance_nearest(x, y, par_throwable);
 					
 		// Done here so they're at the hold and held states at the same time
-		stateMachine.requestChange(holdState, 0, _held);
-		_held.stateMachine.requestChange(_held.heldState, 0, id);
-		_held.stateMachine.requestChange(_held.heldState, 1, id);
-		_held.stateMachine.requestChange(_held.heldState, 2, id);
+		stateMachine.requestChange(states[SH.HOLD], 0, [_held]);
+		_held.stateMachine.requestChange(_held.states[SH.HELD], 0, [id]);
+		_held.stateMachine.requestChange(_held.states[SH.HELD], 1, [id]);
+		_held.stateMachine.requestChange(_held.states[SH.HELD], 2, [id]);
 	}
 }
 
 var _idleCombatData = [_checkSetHeld];
+#endregion
+
+#region Projectile Setup 
+var _projGrav = 9.8;
+var _projDecel = 0.87;
+
+var _projData = [_projGrav, _projDecel];
 #endregion
 
 #region Old Functions
@@ -603,7 +610,7 @@ states[SH.WALK] = new PlyrWalkState(persistVar, stateMachine, inputHandler, _ply
 states[SH.INAIR] =  new InAirState(persistVar, stateMachine, inputHandler, _inAirAnims, _inAirData);
 states[SH.JUMP] = new JumpState(persistVar, stateMachine, inputHandler, _jumpAnims, _jumpData); 
 states[SH.DASH] = new DashState(persistVar, stateMachine, inputHandler, _dashAnims, _dashData); 
-states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims);
+states[SH.PROJECTILE] = new ProjectileState(persistVar, stateMachine, inputHandler, _idleAnims, _projData);
 states[SH.IDLECOMBAT] = new IdleCombatState(persistVar, stateMachine, inputHandler, _idleAnims, _idleCombatData);
 states[SH.HOLD] = new HoldState(persistVar, stateMachine, inputHandler, _idleAnims);
 states[SH.CLIMB] = new ClimbState(persistVar, stateMachine, inputHandler, _climbAnims, _climbData);

@@ -1,4 +1,4 @@
-stateMachine.updLogic();
+execPipeLine();
 
 //DEBUGGING
 //show_debug_message([xVel, yVel]);

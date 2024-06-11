@@ -38,7 +38,7 @@ function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	initMPos = [];
 	
 	static sEnter = function(_data) {
-		held = _data;
+		held = _data[0];
 		initMPos = [mouse_x, mouse_y];
 	}
 	
@@ -87,7 +87,7 @@ function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		//show_debug_message([initVel, angle]);
 		for (var i = 0; i < totalTime; i += 1 * multi) {
 			var _nextXPos = initVel * i  *cos(angle) * areAxesOpposite + held.x; 
-			var _nextYPos = (initVel * i * sin(angle)  - (1/2) *  -held.projGrav * sqr(i)) + held.y;
+			var _nextYPos = (initVel * i * sin(angle)  - (1/2) *  -held.states[SH.PROJECTILE].projGrav * sqr(i)) + held.y;
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
@@ -174,7 +174,7 @@ function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	static aimProjectilePlyr = function() {
 		areAxesOpposite = -1;
 		// WE'RE USING RADIANS		
-		var _grav = held.projGrav;
+		var _grav = held.states[SH.PROJECTILE].projGrav;
 		var _xDiff = mouse_x - initMPos[0];
 		var _yDiff = mouse_y - initMPos[1];
 		
@@ -202,7 +202,7 @@ function HoldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 		var _sqrY = sqr(held.y - _targetPos[1]);
 		height = (held.y - _targetPos[1]) + sqrt(_sqrX + _sqrY) / 2;
 		
-		var _grav = held.projGrav;
+		var _grav = held.states[SH.PROJECTILE].projGrav;
 		var _tX = _targetPos[0];
 		var _tY = _targetPos[1];
 		//show_debug_message(_targetPos);

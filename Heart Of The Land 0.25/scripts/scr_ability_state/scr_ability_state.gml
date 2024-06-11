@@ -228,7 +228,10 @@ function AirDashState(_persistVar, _stateMachine, _inputHandler, _anims, _data =
 function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) : AbilityState(_persistVar, _stateMachine, _inputHandler, _anims, _data = undefined) constructor {
 	static name = "Projectile";
 	static num = SH.PROJECTILE;
-
+	projGrav = _data[0];
+	decel = _data[1];
+	
+	
 	projectileFrame = 0;
 	
 	angle = 0;
@@ -328,7 +331,7 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 			projectileFrame += 1 * multi;
 			// Find the next position we're going to
 			var _nextXPos = (initVel) * projectileFrame *cos(angle) * areAxesOpposite;
-			var _nextYPos = (initVel) * projectileFrame * sin(angle) - (1/2)*  -persistVar.projGrav * sqr(projectileFrame);
+			var _nextYPos = (initVel) * projectileFrame * sin(angle) - (1/2)*  -projGrav * sqr(projectileFrame);
 			
 			// Make the xVel the difference between the next position and the last position
 			persistVar.xVel = _nextXPos - lastXPos;
@@ -377,10 +380,10 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 			// We can divide the acceleration by the mass to have the speed be affected by mass
 			// yvel += accel/mass
 		
-			var _y1 = (initVel) * (multi * 1) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 1); //- (1/2) * power(multi * 1, 2);
-			var _y2 = (initVel) * (multi * 2) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 2); //- (1/2) * power(multi * 2, 2);
-			var _y3 = (initVel) * (multi * 3) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 3); //- (1/2) * power(multi * 3, 2);
-			var _y4 = (initVel) * (multi * 4) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 4); //- (1/2) * power(multi * 4, 2);
+			var _y1 = (initVel) * (multi * 1) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 1); //- (1/2) * power(multi * 1, 2);
+			var _y2 = (initVel) * (multi * 2) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 2); //- (1/2) * power(multi * 2, 2);
+			var _y3 = (initVel) * (multi * 3) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 3); //- (1/2) * power(multi * 3, 2);
+			var _y4 = (initVel) * (multi * 4) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 4); //- (1/2) * power(multi * 4, 2);
 		
 			var _y12Diff = _y1 - _y2;
 			var _y23Diff = _y2 - _y3;
@@ -489,15 +492,15 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 		 
 		 i 
 		 
-		 ((initVel) * i * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(i)) - ((initVel) * (i+1) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr((i+1)));
-		 initVel * sin(angle) (i)  - (1/2) * -persistVar.projGrav (sqr(i)) - i
+		 ((initVel) * i * sin(angle) - (1/2) *  -projGrav * sqr(i)) - ((initVel) * (i+1) * sin(angle) - (1/2) *  -projGrav * sqr((i+1)));
+		 initVel * sin(angle) (i)  - (1/2) * -projGrav (sqr(i)) - i
 		 initVel * 1 
 		 
 		 */
 		
 		else {
-			persistVar.xVel = persistVar.xVel * persistVar.decel;
-			persistVar.yVel = persistVar.yVel * persistVar.decel;
+			persistVar.xVel = persistVar.xVel * decel;
+			persistVar.yVel = persistVar.yVel * decel;
 		}
 		
 	}
@@ -509,7 +512,7 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 		
 		for (var i = 0; i < totalTime; i += 1 * multi) {
 			var _nextXPos = initVel * i * cos(angle) * areAxesOpposite + initPos[0];
-			var _nextYPos = (initVel * i * sin(angle) - (1/2) * -persistVar.projGrav * sqr(i)) + initPos[1];
+			var _nextYPos = (initVel * i * sin(angle) - (1/2) * -projGrav * sqr(i)) + initPos[1];
 			
 			draw_line(_lastXPos, _lastYPos, _nextXPos, _nextYPos);
 			
@@ -534,12 +537,12 @@ function ProjectileState(_persistVar, _stateMachine, _inputHandler, _anims, _dat
 		// I figured it out, there will be friction because there is still a normal force
 		
 		var _impulseForce = (initVel) * (multi * 1) * sin(angle);
-		var _gravForce = (1/2) *  persistVar.projGrav * sqr(multi * 1) * parameters.mass; // individual mass doesn't matter with gravity
+		var _gravForce = (1/2) *  projGrav * sqr(multi * 1) * parameters.mass; // individual mass doesn't matter with gravity
 		
 		// These are our positions
-		var _y1 = (initVel) * (multi * 1) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 1) * parameters.mass; //- (1/2) * power(multi * 1, 2); 
-		var _y2 = (initVel) * (multi * 2) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 2) * parameters.mass; //- (1/2) * power(multi * 2, 2);
-		var _y3 = (initVel) * (multi * 3) * sin(angle) - (1/2) *  -persistVar.projGrav * sqr(multi * 3) * parameters.mass; //- (1/2) * power(multi * 3, 2);
+		var _y1 = (initVel) * (multi * 1) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 1) * parameters.mass; //- (1/2) * power(multi * 1, 2); 
+		var _y2 = (initVel) * (multi * 2) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 2) * parameters.mass; //- (1/2) * power(multi * 2, 2);
+		var _y3 = (initVel) * (multi * 3) * sin(angle) - (1/2) *  -projGrav * sqr(multi * 3) * parameters.mass; //- (1/2) * power(multi * 3, 2);
 		
 		// These are our speeds (since we already divide by mass, and we don't not want to because gravity isn't divided by mass {we can multiply it by mass})
 		var _y12Diff = _y1 - _y2;
@@ -585,7 +588,7 @@ function HeldState(_persistVar, _stateMachine, _inputHandler, _anims, _data = un
 	holder = undefined;
 	
 	static sEnter = function(_data) {
-		holder = _data;
+		holder = _data[0];
 	}
 	
 	static updLogic = function() {
